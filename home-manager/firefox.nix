@@ -56,7 +56,10 @@ in
           urls = [ { template = "https://www.mynixos.com/search?q={searchTerms}"; } ];
           iconUpdateURL = "https://mynixos.com/favicon.ico";
           updateInterval = 24 * 60 * 60 * 1000; # every day
-          definedAliases = [ "@nse" "@mynixos" ];
+          definedAliases = [
+            "@nse"
+            "@mynixos"
+          ];
         };
         "Nix Packages" = {
           urls = [
