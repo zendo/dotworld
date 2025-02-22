@@ -18,11 +18,11 @@
 
 stdenv.mkDerivation rec {
   pname = "xs";
-  version = "1.0.17";
+  version = "1.0.19";
 
   src = fetchurl {
     url = "https://github.com/Sle2p/xs.cx/releases/download/${version}/xs-${version}+1-linux.deb";
-    hash = "sha256-d9mSN3OcX/asIa7H7aa+rEfosLHfnQ1ArKT554jS5PQ=";
+    hash = "sha256-i2GlA6YScWDpvYEAOfjLxNkKpU5X+pJ9cFTVbnsELkg=";
   };
 
   nativeBuildInputs = [

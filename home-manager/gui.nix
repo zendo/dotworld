@@ -59,9 +59,6 @@
     # mousai
     songrec
     # yt-dlp
-    # media-downloader
-    # eartag
-    # tagger
     # jamesdsp
     # ciano
     # video-trimmer
@@ -97,11 +94,9 @@
     # drawio
     # rnote # handwritten note
     foliate # (webkitgtk)
-    # koodo-reader
-    # librum
+    koodo-reader
     notes
     planify
-    # endeavour
     # ghostwriter # (qtwebengine)
     meld
     # textpieces
