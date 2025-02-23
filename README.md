@@ -21,7 +21,7 @@ nixos-anywhere \
   --disko-mode mount \ # skip disk reformat
   --no-substitute-on-destination \
   --flake .#rmt \
-  root@192.168.122.89
+  root@192.168.122.78
 
 nixos-install --no-root-passwd --flake .#host
 --option substituters "https://cache.nixos.org"
