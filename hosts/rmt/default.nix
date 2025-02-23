@@ -10,6 +10,7 @@
 {
   imports = [
     # ./bcachefs-single.nix
+    ./btrfs-subvolumes.nix
     ./hardware-configuration.nix
 
     self.nixosModules.gnome

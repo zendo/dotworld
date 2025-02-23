@@ -13,17 +13,17 @@
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
-  fileSystems."/" =
-    { device = "/dev/disk/by-uuid/2ccebd9d-030d-4a39-a24f-d74befbbfdec";
-      fsType = "bcachefs";
-      options =  [ "compression=zstd" ];
-    };
+  # fileSystems."/" =
+  #   { device = "/dev/disk/by-uuid/2ccebd9d-030d-4a39-a24f-d74befbbfdec";
+  #     fsType = "bcachefs";
+  #     options =  [ "compression=zstd" ];
+  #   };
 
-  fileSystems."/efi" =
-    { device = "/dev/disk/by-uuid/FDD2-BD65";
-      fsType = "vfat";
-      options = [ "fmask=0022" "dmask=0022" ];
-    };
+  # fileSystems."/efi" =
+  #   { device = "/dev/disk/by-uuid/FDD2-BD65";
+  #     fsType = "vfat";
+  #     options = [ "fmask=0022" "dmask=0022" ];
+  #   };
 
   swapDevices = [ ];
 
