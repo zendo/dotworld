@@ -16,7 +16,6 @@ in
     "foot".source = ../dotfiles/foot;
     "kitty".source = ../dotfiles/kitty;
     "zellij".source = ../dotfiles/zellij;
-    "wezterm".source = ../dotfiles/wezterm;
     "swaylock".source = ../dotfiles/swaylock;
     "alacritty".source = ../dotfiles/alacritty;
     "radioboat".source = ../dotfiles/radioboat;
@@ -33,6 +32,7 @@ in
     "waybar".source = linkFlake "dotfiles/waybar";
     "yt-dlp".source = linkFlake "dotfiles/yt-dlp";
     "ghostty".source = linkFlake "dotfiles/ghostty";
+    "wezterm".source = linkFlake "dotfiles/wezterm";
     "niri".source = linkFlake "dotfiles/niri";
     "sway/config".source = linkFlake "dotfiles/sway/config";
     "hypr/hyprland.conf".source = linkFlake "dotfiles/hypr/hyprland.conf";

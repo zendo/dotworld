@@ -23,7 +23,6 @@
 
       perSystem =
         {
-          inputs',
           lib,
           pkgs,
           config,
