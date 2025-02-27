@@ -21,6 +21,7 @@
       sync-nixosVersion = ''!git fetch upstream master && git merge "$(nixos-version --revision)"'';
     };
     extraConfig = {
+      column.ui = "auto";
       init.defaultBranch = "main";
       # pull.rebase = true;
       # merge.ff = "only";
