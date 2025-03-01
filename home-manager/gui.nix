@@ -6,7 +6,8 @@
 }:
 {
   home.packages = with pkgs; [
-    xs
+    xs # 像宿-弹幕动漫
+    cyc # 次元城动画
     # azcomicv
 
     foot
