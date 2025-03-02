@@ -17,7 +17,6 @@ let
       throw "No Window Manager enabled!";
 in
 {
-  # greetd
   services.greetd = {
     enable = true;
     settings = {

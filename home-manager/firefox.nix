@@ -4,8 +4,8 @@ let
   betterfox = pkgs.fetchFromGitHub {
     owner = "yokoffing";
     repo = "Betterfox";
-    rev = "133.0";
-    hash = "sha256-Uu/a5t74GGvMIJP5tptqbiFiA+x2hw98irPdl8ynGoE=";
+    rev = "135.0";
+    hash = "sha256-5fD8ffAyIgQYJ0Z/bMEpqf17YghVQNaK+giZ1Tyk6/Q=";
   };
 in
 {
@@ -45,20 +45,20 @@ in
         "gfx.webrender.quality.force-subpixel-aa-where-possible" = true;
       };
       search.engines = {
-        Google.metaData.alias = "@g";
+        Google.metaData.alias = "g";
         GitHub = {
           urls = [ { template = "https://github.com/search?q={searchTerms}"; } ];
           iconUpdateURL = "https://github.com/fluidicon.png";
           updateInterval = 24 * 60 * 60 * 1000; # every day
-          definedAliases = [ "@git" ];
+          definedAliases = [ "git" ];
         };
         MyNixOS = {
           urls = [ { template = "https://www.mynixos.com/search?q={searchTerms}"; } ];
           iconUpdateURL = "https://mynixos.com/favicon.ico";
           updateInterval = 24 * 60 * 60 * 1000; # every day
           definedAliases = [
-            "@nse"
-            "@mynixos"
+            "nse"
+            "mynixos"
           ];
         };
         "Nix Packages" = {
@@ -82,7 +82,7 @@ in
             }
           ];
           icon = "${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg";
-          definedAliases = [ "@nix" ];
+          definedAliases = [ "nix" ];
         };
         "Home Manager Options" = {
           urls = [
@@ -101,7 +101,7 @@ in
             }
           ];
           icon = "''${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg";
-          definedAliases = [ "@hm" ];
+          definedAliases = [ "hm" ];
         };
       };
     };
