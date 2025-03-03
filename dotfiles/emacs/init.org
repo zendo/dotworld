@@ -1,0 +1,1778 @@
+#+TITLE: My emacs literate configuration
+#+DATE: \today
+#+AUTHOR: zendo
+
+* Startup Performance
+#+begin_src elisp
+  ;;; init.el --- Initialization -*- lexical-binding: t; -*-
+
+  ;; Defer garbage collection further back in the startup process
+  (setq gc-cons-threshold most-positive-fixnum)
+
+  ;; Prevent flash of unstyled modeline at startup
+  (setq-default mode-line-format nil)
+
+  ;; Don't pass case-insensitive to `auto-mode-alist'
+  (setq auto-mode-case-fold nil)
+
+  ;; Control use of local variables in files you visit.
+  ;; :safe means set the safe variables, and ignore the rest.
+  (setq enable-local-variables :safe)
+
+  ;; Split emacs auto customizations
+  (setq custom-file (expand-file-name ".custom.el" user-emacs-directory))
+  (when (file-exists-p custom-file)
+    (load custom-file 'noerror))
+
+  ;; Load the default init file
+  ;; (load "default" 'noerror 'nomessage)
+#+end_src
+
+* Silence Warnings
+#+begin_src elisp
+  ;; disable warnings
+  (setq warning-minimum-level :emergency
+        byte-compile-warnings '(not
+                                obsolete
+                                free-vars
+                                unresolved
+                                callargs
+                                redefine
+                                noruntime
+                                cl-functions
+                                interactive-only
+                                make-local))
+
+  ;; disable prompt
+  (put 'narrow-to-region 'disabled nil)
+  (put 'narrow-to-page 'disabled nil)
+  (put 'narrow-to-defun 'disabled nil)
+  (put 'upcase-region 'disabled nil)
+  (put 'downcase-region 'disabled nil)
+  (put 'erase-buffer 'disabled nil)
+  (put 'scroll-left 'disabled nil)
+#+end_src
+* Package Initialize
+#+begin_src elisp
+  ;; repositories
+  (setq package-archives '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
+                           ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
+
+  ;; Initialize packages
+  (package-initialize)
+#+end_src
+** use-package, bind-key, diminish
+#+begin_src elisp
+  (setq use-package-always-ensure t
+        ;; use-package-always-defer t
+        ;; use-package-verbose t
+        use-package-enable-imenu-support t)
+  (require 'use-package)
+
+  (use-package bind-key)
+
+  (use-package diminish
+    :config
+    (diminish 'eldoc-mode) ;echo area 显示函数的参数列表
+    (diminish 'visual-line-mode))
+#+end_src
+** library
+#+begin_src elisp
+  (require 'cl-lib)
+  ;; (use-package dash) ;modern list library
+  (use-package s) ;string manipulation library
+  (use-package f) ;file manipulation
+#+end_src
+* OS Setup
+** vars
+#+begin_src elisp
+  (defconst IS-MAC     (eq system-type 'darwin))
+  (defconst IS-LINUX   (eq system-type 'gnu/linux))
+  (defconst IS-WINDOWS (memq system-type '(cygwin windows-nt ms-dos)))
+  (defconst IS-BSD     (or IS-MAC (eq system-type 'berkeley-unix)))
+  (defconst IS-WSL     (and IS-LINUX
+                            (string-match-p "Microsoft"
+                                            (shell-command-to-string "uname -a"))))
+#+end_src
+** linux
+#+begin_src elisp
+  (when IS-LINUX
+    (setq org-directory "~/Documents/Notes")
+    (set-face-font 'default "JetBrains Mono-10")
+    (dolist (charset '(kana han symbol cjk-misc bopomofo))
+      (set-fontset-font (frame-parameter nil 'font)
+                        charset
+                        (font-spec :family "Noto Sans CJK SC" :size 12)))
+    )
+#+end_src
+** wsl
+#+begin_src elisp
+  (when IS-WSL
+    ;; WSLg breaks copy-paste from Emacs into Windows
+    ;; see: https://www.lukas-barth.net/blog/emacs-wsl-copy-clipboard/
+    (setq select-active-regions nil
+          select-enable-clipboard 't
+          select-enable-primary nil
+          interprogram-cut-function #'gui-select-text))
+#+end_src
+** windows
+#+begin_src elisp
+  (when IS-WINDOWS
+    (setq default-directory "C:/Users/zendo/Desktop/" ;主目录
+          ;; org-directory "c:/Users/zendo/Documents/org/"
+          )
+    (set-face-attribute 'default nil :font
+                        (format "JetBrains Mono-10"))
+    (dolist (charset '(kana han symbol cjk-misc bopomofo))
+      (set-fontset-font (frame-parameter nil 'font)
+                        charset
+                        (font-spec :family "Microsoft Yahei" :size 24))))
+#+end_src
+* Basic
+#+BEGIN_SRC elisp
+  ;; interface
+  (setq confirm-kill-processes nil
+        ;; mouse-autoselect-window t
+        visible-bell 1                ;关闭错误警示
+        system-time-locale "C"        ;使用英文时间格式
+        sentence-end-double-space nil ;Sentences should end in one space
+        display-time-24hr-format t
+        sentence-end "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*" ;识别中文标点符号
+        require-final-newline t)
+
+  (fset 'yes-or-no-p 'y-or-n-p)
+
+  (unless (and (fboundp 'server-running-p)
+               (server-running-p))
+    (server-start))
+
+  ;; kill emacsclient message
+  (add-hook 'server-after-make-frame-hook
+            (lambda ()
+              (setq inhibit-message t)
+              (run-with-idle-timer 0 nil (lambda () (setq inhibit-message nil)))))
+#+END_SRC
+* Buffers
+#+begin_src elisp
+  ;; ibuffer
+  (defalias 'list-buffers 'ibuffer)
+  (setq ibuffer-expert t) ; 直接操作不询问
+  (setq ibuffer-use-other-window t)
+#+end_src
+* Spell
+#+begin_src elisp
+  (require 'flyspell)
+  (setq ispell-dictionary "en"        ;使用英文词典
+        ispell-program-name "aspell" ; use aspell instead of ispell
+        ispell-extra-args '("--sug-mode=ultra"))
+#+end_src
+* Editing
+#+begin_src elisp
+  (show-paren-mode 1)                         ;括号匹配 parens
+  (electric-pair-mode t)                      ;自动补全括号
+  (delete-selection-mode t)                   ;overwrite selected text
+  ;; (global-visual-line-mode 1)                 ;折叠 word wrap
+  (global-prettify-symbols-mode 1)            ;Show lambda as λ.
+
+  (setq-default frame-title-format "%b (%f)") ;标题栏显示正在编辑的文件名
+#+end_src
+** tab and spaces
+#+begin_src elisp
+  (setq-default tab-width 4
+                indent-tabs-mode nil) ;indent with spaces, never with TABs
+#+end_src
+** coding system (UTF-8)
+#+begin_src elisp
+  ;; Set UTF-8 as the default coding system
+  (when (fboundp 'set-charset-priority)
+    (set-charset-priority 'unicode))
+  (prefer-coding-system 'utf-8)
+  (setq locale-coding-system 'utf-8)
+  (setq system-time-locale "C")
+  (unless (eq system-type 'windows-nt)
+    (set-selection-coding-system 'utf-8))
+#+end_src
+** whitespace
+#+begin_src elisp
+  (setq whitespace-action '(auto-cleanup)  ;automatically clean up bad whitespace
+        whitespace-style '(face
+                           trailing space-before-tab
+                           indentation empty space-after-tab))
+  (whitespace-mode 1)
+#+end_src
+* Backup
+#+begin_src elisp
+;save system clipboard before emacs clipboard
+(setq save-interprogram-paste-before-kill t)
+
+;; 备份 Backup
+(global-auto-revert-mode 1)        ;自动加载被外部修改过的文件
+(setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups"))))
+(setq make-backup-files t          ;备份文件 backup~
+      auto-save-default nil        ;stop creating #autosave# files
+      create-lockfiles nil         ;stop creating .#lockfile# files 多人编辑中
+      delete-by-moving-to-trash t) ;删除至回收站
+(setq backup-by-copying t          ; don't clobber symlinks
+      kept-new-versions 10         ; keep 10 latest versions
+      kept-old-versions 0          ; don't bother with old versions
+      delete-old-versions t        ; don't ask about deleting old versions
+      version-control t            ; number backups
+      vc-make-backup-files t)      ; backup version controlled files
+
+
+;; 自动保存 autosave
+(auto-save-visited-mode 1)
+;; (setq auto-save-visited-interval 15) ;default is 5s
+(add-function :after after-focus-change-function (lambda () (save-some-buffers t)))
+
+;; save-place 记住光标所在位置
+(setq save-place-file (expand-file-name ".saveplace" user-emacs-directory))
+(save-place-mode 1)
+
+;; savehist
+(setq savehist-file (expand-file-name ".savehist" user-emacs-directory)
+      savehist-save-minibuffer-history t
+      savehist-autosave-interval 60
+      savehist-additional-variables '(kill-ring
+                                      search-ring
+                                      regexp-search-ring))
+(savehist-mode 1)
+
+;; bookmarks
+(setq bookmark-default-file (expand-file-name ".bookmarks" user-emacs-directory)
+      bookmark-save-flag 1              ;automatically save when changed
+      )
+
+;; recentf
+(setq recentf-auto-cleanup 'never ;disable before we start recentf!
+      recentf-max-saved-items 50
+      recentf-max-menu-items 15
+      recentf-save-file (expand-file-name ".recentf" user-emacs-directory)
+      recentf-exclude
+      '("COMMIT" "autoloads" "archive-contents" "eld" "elpa" "bookmarks" "session"
+        "^/tmp/" "\\.?ido\\.last$" "\\.revive$" "/TAGS$" ".cache" "persp-auto-save"
+        ".recentf" "emacs_backup" "\\.\\(?:gz\\|gif\\|svg\\|png\\|jpe?g\\)$"))
+(recentf-mode 1)
+
+;; undo-fu
+(use-package undo-fu)
+
+;; undo-fu-session
+(use-package undo-fu-session
+  :custom
+  (undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'"))
+  :config
+  (global-undo-fu-session-mode 1))
+
+;; undo-tree C-x u
+(use-package vundo
+  :bind (("C-x u" . vundo))
+  :config
+  (setq vundo-glyph-alist vundo-unicode-symbols)
+  (setq vundo-roll-back-on-quit nil))
+#+end_src
+* Themes icons
+#+begin_src elisp
+  (use-package doom-themes)
+  (load-theme 'doom-tomorrow-night t)
+  ;;(load-theme 'doom-badger t)
+
+  ;; (use-package ef-themes)
+  ;; (load-theme 'ef-frost t)
+
+  ;; (use-package tangonov-theme)
+  ;; (use-package monokai-theme)
+  ;; (use-package vscode-dark-plus-theme)
+  ;; (use-package zenburn)
+  ;; (use-package eclipse-theme)
+
+  ;; (use-package haki-theme
+  ;;   :config
+  ;;   (setq haki-region "#2e8b6d")
+  ;;   (load-theme 'haki t))
+
+  (use-package nerd-icons)
+
+  (use-package nerd-icons-completion
+    :after marginalia
+    :config
+    (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+
+  (use-package nerd-icons-corfu
+    :after corfu
+    :config
+    (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+
+  (use-package nerd-icons-dired
+    :hook
+    (dired-mode . nerd-icons-dired-mode))
+#+end_src
+* Mode line
+#+begin_src elisp
+  (column-number-mode t)      ;显示列数
+  (size-indication-mode t)    ;显示文件大小
+  ;; (display-time-mode 1)       ;显示时间
+  ;; (unless (string-match-p "^Power N/A" (battery))
+  ;;   (display-battery-mode 1))
+
+  ;; (use-package doom-modeline
+  ;;     :init (doom-modeline-mode 1)
+  ;;     :custom ((doom-modeline-buffer-file-name-style 'relative-to-project)
+  ;;              (doom-modeline-icon nil)
+  ;;              (line-number-mode 1)
+  ;;              (column-number-mode 1)))
+
+  (use-package mood-line
+    :config
+    (mood-line-mode))
+#+end_src
+* Packages
+#+begin_src elisp
+  (use-package helpful
+    :bind (("C-h f" . helpful-callable)
+           ("C-h v" . helpful-variable)
+           ("C-h k" . helpful-key)))
+
+  ;; mwim ;moving to the beginning/end code
+  (use-package mwim
+    :bind (("C-a" . mwim-beginning-of-code-or-line)
+           ("C-e" . mwim-end-of-code-or-line)))
+
+  ;; (use-package mosey
+  ;;   :bind (("C-a" . mosey-backward-bounce)
+  ;;          ("C-e" . mosey-forward-bounce)))
+
+  ;; move-text M-up/M-down
+  (use-package move-text
+    :init
+    (move-text-default-bindings))
+
+  ;; easy-kill
+  (use-package easy-kill
+    :bind (([remap mark-sexp] . easy-mark)
+           ([remap kill-ring-save] . easy-kill)))
+
+  ;; crux
+  (use-package crux
+    :bind (("C-k" . crux-smart-kill-line)
+           ("C-<return>" . crux-smart-open-line)
+           ("C-S-<return>" . crux-smart-open-line-above)))
+
+  (use-package iedit
+    :defer t)
+
+  (use-package multiple-cursors
+    :bind (("C-}" . mc/mark-next-like-this)
+           ("C-{" . mc/mark-previous-like-this)
+           ("C-|" . mc/mark-all-like-this-dwim)
+           ;; ("s-<mouse-1>" . mc/add-cursor-on-click)
+           ))
+
+  ;; Simple expand region
+  (use-package expreg
+    :bind (("C-=" . expreg-expand)
+           ("C--" . expreg-contract)))
+
+  ;; Smartly select region, rectangle, multi cursors
+  (use-package smart-region
+    :commands smart-region-on
+    :hook (after-init . smart-region-on))
+
+  (use-package anzu
+    :bind
+    ([remap query-replace] . anzu-query-replace)
+    ([remap query-replace-regexp] . anzu-query-replace-regexp))
+
+  ;; (use-package ctrlf
+  ;;   :config
+  ;;   (ctrlf-mode t))
+
+  ;; (use-package rg
+  ;;   :bind (("C-c s" . rg-menu))
+  ;;   :config
+  ;;   (setq rg-show-columns t)
+  ;;   (setq rg-default-alias-fallback "everything"))
+
+  ;; better than rg
+  (use-package deadgrep
+    :bind ("C-c C-s" . deadgrep))
+
+  ;; Writable grep buffer
+  (use-package wgrep
+    :defer t)
+
+  (use-package hl-todo
+    :config
+    (global-hl-todo-mode))
+
+  ;; 显示截断竖线
+  (use-package fill-column-indicator
+    :commands fci-mode)
+
+  ;; 高亮删除插入操作
+  ;; (use-package volatile-highlights
+  ;;   :config (volatile-highlights-mode t))
+
+  ;; rainbow 颜色代码显色 #00FF00
+  (use-package rainbow-mode
+    :commands rainbow-mode)
+
+  ;; rainbow-delimiters  彩虹括号
+  (use-package rainbow-delimiters
+    :hook (prog-mode . rainbow-delimiters-mode))
+
+  ;; same as beacon
+  (use-package scrollkeeper
+    :bind
+    (([remap scroll-up-command] . scrollkeeper-contents-up)
+     ([remap scroll-down-command] . scrollkeeper-contents-down)))
+
+  ;; (use-package beacon
+  ;;   :custom
+  ;;   (beacon-color "#aa3400")
+  ;;   ;; (beacon-size  64)
+  ;;   (beacon-blink-when-focused t)
+  ;;   :custom-face
+  ;;   (beacon-fallback-background ((t (:background "#556b2f"))))
+  ;;   :config
+  ;;   (beacon-mode 1))
+
+  ;; Narrow/Widen
+  ;; (use-package fancy-narrow
+  ;;   :diminish fancy-narrow-mode
+  ;;   :init
+  ;;   (fancy-narrow-mode 1))
+
+  (use-package goto-last-change
+    :defer t)
+
+  ;; Bookmark
+  (use-package bm
+    :defer t)
+
+  ;; avy
+  (use-package avy
+    :bind (("M-s" . avy-goto-char)))
+
+  ;; avy-zap
+  (use-package avy-zap
+    :bind (("M-z" . avy-zap-up-to-char-dwim)))
+
+  ;; ace-window
+  (use-package ace-window
+    :bind
+    (([remap other-window] . ace-window)
+     ("C-x 4 x" . ace-swap-window)
+     ("C-c w x" . ace-swap-window)))
+
+  ;; rotate
+  (use-package rotate
+    :bind (("C-c w v" . rotate-layout)))
+
+  (use-package ialign
+    :bind (("C-x l" . ialign)))
+
+  (use-package fanyi
+    :bind (("C-c y" . fanyi-dwim2)))
+
+  ; broken
+  ;; C-x SPC, ?
+  ;; (use-package speedrect
+  ;;   :vc (:url "https://github.com/jdtsmith/speedrect"
+  ;;             :rev :newest))
+
+  ;; (use-package auto-sudoedit
+  ;;   :delight
+  ;;   :commands auto-sudoedit-sudoedit
+  ;;   :init (defalias 'sudoedit #'auto-sudoedit-sudoedit))
+
+  (use-package nyan-mode
+    :commands nyan-mode)
+
+  (use-package vlf)
+
+  ;; Garbage Collector Magic Hack
+  (use-package gcmh
+    :diminish
+    :init (setq gc-cons-threshold (* 80 1024 1024))
+    :hook (emacs-startup . gcmh-mode))
+
+  (use-package disk-usage
+    :commands (disk-usage))
+#+end_src
+* Dired
+#+begin_src elisp
+(use-package diredfl
+  :config
+  (diredfl-global-mode 1))
+
+(use-package dired-git-info
+  :config (setq dgi-auto-hide-details-p nil)
+  :hook (dired-after-readin . dired-git-info-auto-enable))
+
+(use-package dired-x
+  :ensure nil)
+
+(use-package dired
+  :ensure nil
+  :custom ((dired-recursive-copies 'always) ;递归操作目录
+           (dired-recursive-deletes 'top) ;询问一次;
+           (dired-auto-revert-buffer t)
+           (dired-listing-switches "-lha --group-directories-first"))
+  :bind (("s-d" . dired-jump)
+         ("C-x C-d" . dired-jump)
+         :map dired-mode-map
+         ("f" . consult-find)
+         ("RET" . dired-find-alternate-file)
+         ("." . dired-do-print)
+         ("," . dired-hide-details-mode)
+         ("/" . funs/dired-filter-show-match)
+         ("b" . (lambda ()
+                  (interactive)
+                  (find-alternate-file ".."))))
+  :config
+  (put 'dired-find-alternate-file 'disabled nil) ;a键进入目录时只用一个buffe
+  ;;;###autoload
+  (define-advice dired-do-print (:override (&optional _))
+    "Show/hide dotfiles."
+    (interactive)
+    (if (or (not (boundp 'dired-dotfiles-show-p)) dired-dotfiles-show-p)
+        (progn
+          (setq-local dired-dotfiles-show-p nil)
+          (dired-mark-files-regexp "^\\.")
+          (dired-do-kill-lines))
+      (revert-buffer)
+      (setq-local dired-dotfiles-show-p t)))
+  ;;;###autoload
+  (defun funs/dired-filter-show-match ()
+    "Only show filter file."
+    (interactive)
+    (call-interactively #'dired-mark-files-regexp)
+    (command-execute "tk")))
+#+end_src
+* Minibuffer
+** vertico
+#+begin_src elisp
+  ;; VERTical Interactive COmpletion
+  (use-package vertico
+    :bind (:map vertico-map
+                ("<escape>" . #'minibuffer-keyboard-quit)
+                ("RET" . vertico-directory-enter)
+                ("DEL" . vertico-directory-delete-char))
+    :init
+    (vertico-mode)
+    (vertico-mouse-mode 1))
+
+  ;;----------------------------------------------------------------------------
+  ;; Functions
+  ;;----------------------------------------------------------------------------
+  ;; 箭头显示当前项
+  ;;;###autoload
+  (advice-add #'vertico--format-candidate :around
+              (lambda (orig cand prefix suffix index _start)
+                (setq cand (funcall orig cand prefix suffix index _start))
+                (concat
+                 (if (= vertico--index index)
+                     (propertize "» " 'face 'vertico-current)
+                   "  ")
+                 cand)))
+#+end_src
+** marginalia
+#+begin_src elisp
+  ;; Enrich existing commands with completion annotations
+  (use-package marginalia
+    :after vertico
+    :init
+    (marginalia-mode +1))
+#+end_src
+** consult
+#+begin_src elisp
+  ;; Consulting completing-read
+  (use-package consult
+    :bind (("C-c M-x" . consult-mode-command)
+           ([remap apropos-command] . consult-apropos) ; C-h a
+           ([remap list-buffers] . consult-buffer) ; C-x b
+           ([remap find-file-read-only-other-window] . consult-buffer-other-window)
+           ([remap yank-pop] . consult-yank-pop) ; M-y
+           ("C-x C-r" . consult-recent-file)
+           ("C-c b" . consult-bookmark)
+           ("C-s" . consult-line)
+           ("M-." . consult-imenu)
+           ("M-m" . consult-mark)))
+#+end_src
+** embark
+#+begin_src elisp
+  ;; Mini-Buffer Actions Rooted in Keymaps
+  (use-package embark
+    :bind (("C-c C-c" . embark-act)
+           ("C-c C-o" . embark-export)
+           ("C-h B" . embark-bindings))
+    :init
+    ;; Optionally replace the key help with a completing-read interface
+    (setq prefix-help-command #'embark-prefix-help-command))
+
+  ;; Consult users will also want the embark-consult package.
+  (use-package embark-consult
+    :after (embark consult)
+    :hook
+    (embark-collect-mode . consult-preview-at-point-mode))
+#+end_src
+* Completions
+#+begin_src elisp
+  (setq ompletion-cycle-threshold 3  ;TAB cycle if there are only few candidates
+        tab-always-indent 'complete) ;Tab key indent first then completion.)
+#+end_src
+** Hippie Expand
+hippie expand is dabbrev expand on steroids
+
+#+begin_src elisp
+  (setq hippie-expand-try-functions-list
+        '(try-expand-dabbrev                 ;搜索当前 buffer, expand word "dynamically"
+          try-expand-dabbrev-all-buffers     ;搜索所有 buffer
+          try-expand-dabbrev-from-kill       ;从 kill-ring 中搜索
+          try-complete-file-name-partially   ;文件名部分匹配
+          try-complete-file-name             ;文件名匹配
+          try-expand-all-abbrevs             ;匹配所有缩写词, according to all abbrev tables
+          try-expand-list                    ;补全一个列表
+          try-expand-line                    ;补全当前行
+          try-complete-lisp-symbol-partially ;部分补全 lisp symbol
+          try-complete-lisp-symbol))         ;补全 lisp symbol
+#+end_src
+** Company
+http://company-mode.github.io/manual/Getting-Started.html
+
+#+begin_src elisp
+(use-package company
+  :disabled t
+  :diminish " ▶"
+  :init
+  (global-company-mode)
+  :bind (:map company-active-map
+              ("<escape>" . company-abort))
+  :config
+  (setq company-global-modes '(not eshell-mode gud-mode))
+  (setq company-clang-insert-arguments t)
+  (setq company-dabbrev-downcase nil)
+  (setq company-dabbrev-ignore-case nil)
+  (setq company-minimum-prefix-length 1)
+  (setq company-tooltip-align-annotations t)
+  (setq company-idle-delay 0))
+
+(use-package company-flx
+  :after company
+  :init
+  (company-flx-mode))
+#+end_src
+** Corfu
+https://github.com/minad/corfu
+
+#+begin_src elisp
+(use-package corfu
+  ;; :disabled t
+  :bind
+  (:map corfu-map
+        ("<escape>" . corfu-quit)
+        ("<tab>" . corfu-complete)
+        ("M-d" . corfu-info-documentation)
+        ("M-l" . corfu-info-location))
+  :custom
+  (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+  (corfu-auto t)                 ;; Enable auto completion
+  (corfu-auto-prefix 2)
+  (corfu-auto-delay 0.0)
+  ;; (corfu-separator ?\s)          ;; Orderless field separator
+  (corfu-quit-at-boundary 'separator)   ;; completion boundary
+  ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
+  ;; (corfu-preview-current nil)    ;; Disable current candidate preview
+  ;; (corfu-preselect 'prompt)      ;; Preselect the prompt
+  ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
+  ;; (corfu-scroll-margin 5)        ;; Use scroll margin
+  (corfu-max-width 110)
+  (corfu-preview-current nil)
+  (corfu-echo-documentation t)
+  :init
+  (global-corfu-mode)
+  (corfu-history-mode) ; save completion history for better sorting
+  ;; (corfu-popupinfo-mode) ; Popup completion info
+  :config
+  (add-hook 'eshell-mode-hook
+            (lambda () (setq-local corfu-quit-at-boundary t
+                               corfu-quit-no-match t
+                               corfu-auto nil)
+              (corfu-mode))))
+
+
+;; Corfu backend
+(use-package cape
+  :init
+  (add-to-list 'completion-at-point-functions #'cape-tex)
+  (add-to-list 'completion-at-point-functions #'cape-keyword)
+  (add-to-list 'completion-at-point-functions #'cape-history)
+  (add-to-list 'completion-at-point-functions #'cape-symbol)
+  (add-to-list 'completion-at-point-functions #'cape-ispell)
+  ;; (add-to-list 'completion-at-point-functions #'cape-dict)
+  ;; (add-to-list 'completion-at-point-functions #'cape-line)
+  (add-to-list 'completion-at-point-functions #'cape-abbrev)
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-hook 'completion-at-point-functions #'cape-dabbrev 90)
+  (add-hook 'completion-at-point-functions #'cape-file)
+  (add-hook 'prog-mode-hook
+            (lambda ()
+              (add-hook 'completion-at-point-functions
+                        #'cape-keyword nil t))))
+
+;; Pretty icons for corfu
+(use-package kind-icon
+  :if (display-graphic-p)
+  :after corfu
+  :config
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+#+end_src
+** orderless
+Completion style for matching regexps in any order
+#+begin_src elisp
+  (use-package orderless
+    :custom
+    (completion-styles '(orderless basic))
+    (completion-category-defaults nil)
+    (completion-category-overrides '((file (styles partial-completion)))))
+#+end_src
+* Keybindings
+#+BEGIN_SRC elisp
+  ;; Mouse
+  (blink-cursor-mode -1)               ;禁用指针闪烁
+  (setq mouse-yank-at-point t)         ;禁用鼠标点击粘贴
+  (global-unset-key (kbd "<mouse-2>")) ;禁用鼠标中键
+  (fset 'mouse-save-then-kill 'ignore) ;禁用鼠标右键双击剪切
+
+  ;; Scroll
+  (pixel-scroll-precision-mode t)
+
+  ;; winner C-c ←/→ undo/redo window
+  (winner-mode 1)
+
+  (which-key-mode)
+
+  (ffap-bindings) ;find-file-at-point, smarter C-x C-f when point on path or URL
+  ;; (global-set-key (kbd "C-z") 'nil) ;unbind C-z
+  (global-set-key (kbd "C-z") 'undo)
+  (global-set-key (kbd "C-S-z") 'undo-redo)
+  (global-set-key [remap kill-buffer] #'kill-current-buffer)
+
+  ;; (use-package devil
+  ;;   :config
+  ;;   (global-devil-mode)
+  ;;   (global-set-key (kbd "C-,") 'global-devil-mode))
+
+  (bind-keys*
+   ("M-+" . text-scale-increase)
+   ("M-_" . text-scale-decrease)
+
+   ;; ("C-." . company-complete)
+   ("C-." . hippie-expand)
+   ("C-/" . comment-line) ;vscode
+   ("C-\\" . align-regexp)
+   ("C-x \\" . toggle-input-method)
+   ("C-S-i" . eglot-format) ;vscode
+   ("C-S-t" . tab-new)
+
+   ;; doom-like
+   ("C-c <SPC>" . project-find-file)
+   ("C-c C-<SPC>" . project-find-file)
+   ("C-c ." . find-file)
+   ("C-c /" . consult-ripgrep)
+   ("C-c ," . project-switch-to-buffer)
+   ("C-x b" . project-switch-to-buffer)
+   ("C-<tab>" . project-switch-to-buffer)
+
+   ("C-x 2" . (lambda()
+                (interactive)
+                (split-window-below)
+                (select-window (next-window))))
+   ("C-x 3" . (lambda()
+                (interactive)
+                (split-window-right)
+                (select-window (next-window))))
+
+   ("<f7>" . compile)
+   ("<C-f7>" . (lambda()
+                 (interactive)
+                 (save-buffer)
+                 (recompile)))
+
+   :prefix-map buffer-map
+   :prefix "C-c b"
+   ("i" . ibuffer)
+   ("r" . revert-buffer)
+   ("s" . save-some-buffers)
+   ("S" . crux-sudo-edit)
+   ("D" . crux-delete-file-and-buffer)
+   ("<f2>" . rename-visited-file)
+
+   :prefix-map file-map
+   :prefix "C-c f"
+   ("o" . crux-open-with)
+   ("s" . save-some-buffers)
+   ("S" . crux-sudo-edit)
+   ("D" . crux-delete-file-and-buffer)
+   ("<f2>" . rename-visited-file)
+
+   :prefix-map search-map
+   :prefix "C-c s"
+   ("s" . deadgrep)
+   ("l" . consult-line)
+
+   :prefix-map mark-map
+   :prefix "C-c m"
+   ("'" . er/mark-inside-quotes)
+   ("[" . er/mark-inside-pairs)
+   ("l" . goto-last-change)
+   ("m" . bm-toggle)
+   ("0" . bm-remove-all-current-buffer)
+
+   :prefix-map code-map
+   :prefix "C-c c"
+   ("." . consult-lsp-diagnostics)
+
+   ;; :prefix-map lsp-map
+   ;; :prefix "C-c l"
+
+   :prefix-map git-mode
+   :prefix "C-c v"
+   ("/" . magit-dispatch)
+   ("." . magit-file-dispatch)
+   ("t" . git-timemachine)
+
+   :prefix-map remove-map
+   :prefix "C-c -"
+   ("b" . bookmark-delete)
+   ("r" . recentf-edit-list)
+   ("p" . project-forget-project)
+   )
+
+  ;; view-mode
+  (use-package view
+    :ensure nil
+    :bind (:map view-mode-map
+                 ("j" . next-line)
+                 ("k" . previous-line)
+                 ("h" . backward-char)
+                 ("l" . forward-char)
+                 ("g" . goto-line)
+                 ("b" . View-scroll-page-backward))
+    :config
+    (setq view-read-only t))
+
+  ;; M-backspace 删除而非剪切
+  (defun backward-delete-word (arg)
+    "Delete characters backward until encountering the beginning of a word.
+  With argument ARG, do this that many times."
+    (interactive "p")
+    (delete-region (point) (progn (backward-word arg) (point))))
+  (global-set-key [remap backward-kill-word] #'backward-delete-word)
+#+END_SRC
+* Functions
+** make-parent-directory
+#+begin_src elisp
+  ;;;###autoload
+  (defun make-parent-directory ()
+    "Make sure the directory of `buffer-file-name' exists."
+    (make-directory (file-name-directory buffer-file-name) t))
+  (add-hook 'find-file-not-found-functions #'make-parent-directory)
+#+end_src
+** align
+#+begin_src elisp
+  ;;;###autoload
+  (defun zendo/align-whitespace (start end)
+    "Align columns by whitespace"
+    (interactive "r")
+    (align-regexp start end
+                  "\\(\\s-*\\)\\s-" 1 0 t))
+
+  (defun zendo/align-& (start end)
+    "Align columns by ampersand"
+    (interactive "r")
+    (align-regexp start end
+                  "\\(\\s-*\\)&" 1 1 t))
+#+end_src
+** space to newline
+#+begin_src elisp
+  ;;;###autoload
+  (defun zendo/space-to-newline ()
+    "Replace space sequence to a newline char.
+  Works on current block or selection.
+
+  URL `http://ergoemacs.org/emacs/emacs_space_to_newline.html'
+  Version 2017-08-19"
+    (interactive)
+    (let* ( $p1 $p2 )
+      (if (use-region-p)
+          (progn
+            (setq $p1 (region-beginning))
+            (setq $p2 (region-end)))
+        (save-excursion
+          (if (re-search-backward "\n[ \t]*\n" nil "move")
+              (progn (re-search-forward "\n[ \t]*\n")
+                     (setq $p1 (point)))
+            (setq $p1 (point)))
+          (re-search-forward "\n[ \t]*\n" nil "move")
+          (skip-chars-backward " \t\n" )
+          (setq $p2 (point))))
+      (save-excursion
+        (save-restriction
+          (narrow-to-region $p1 $p2)
+          (goto-char (point-min))
+          (while (re-search-forward " +" nil t)
+            (replace-match "\n" ))))))
+#+end_src
+** screenshot
+https://github.com/terlar/emacs-config?tab=readme-ov-file#frame
+
+#+begin_src elisp
+  ;;;###autoload
+  (defun screenshot (type)
+    "Save a screenshot of the current frame as an image in TYPE format.
+  Saves to a temp file and puts the filename in the kill ring."
+    (let* ((ext (concat "." (symbol-name type)))
+           (filename (make-temp-file "Emacs-" nil ext))
+           (data (x-export-frames nil type)))
+      (with-temp-file filename
+        (insert data))
+      (kill-new filename)
+      (message filename)))
+
+  (defun screenshot-svg ()
+    "Save a screenshot of the current frame as an SVG image.
+  Saves to a temp file and puts the filename in the kill ring."
+    (interactive)
+    (screenshot 'svg))
+
+  (defun screenshot-png ()
+    "Save a screenshot of the current frame as an PNG image.
+  Saves to a temp file and puts the filename in the kill ring."
+    (interactive)
+    (screenshot 'png))
+#+end_src
+* Project
+#+begin_src elisp
+(define-key global-map (kbd "C-c p") project-prefix-map)
+
+(use-package project
+  :ensure nil
+  :config
+  ;; (setq project-switch-commands #'project-find-file)
+  (setq project-switch-commands
+        '((project-find-file "Find file" f)
+          (project-dired "Dired" d)
+          ;; (deadgrep "rg" r) # TODO
+          (project-vc-dir "VC-Dir" v)
+          (project-shell "Shell" s)
+          (project-eshell "Eshell" e)
+          (magit-project-status "Magit" ?m)))
+  )
+
+;; Dashboard
+(use-package dashboard
+;; :diminish (dashboard-mode page-break-lines-mode)
+  :custom
+  (dashboard-startup-banner 2)
+  (dashboard-set-heading-icons t)
+  (dashboard-set-file-icons t)
+  (dashboard-set-footer nil)
+  (dashboard-center-content t)
+  (dashboard-icon-type 'nerd-icons)
+  (dashboard-projects-backend 'project-el)
+  (dashboard-banner-logo-title nil) ; "Welcome to Emacs!"
+  (dashboard-items  '((recents  . 12)
+                      (bookmarks . 5)
+                      (projects . 5)))
+  :config
+  (dashboard-setup-startup-hook))
+
+(use-package centaur-tabs
+  :custom ((centaur-tabs-height 28)
+           (centaur-tabs-style "wave")
+           (centaur-tabs-set-icons t)
+           (centaur-tabs-icon-type 'nerd-icons)
+           (centaur-tabs-set-bar 'over)
+           (centaur-tabs-set-close-button nil)
+           (centaur-tabs-set-modified-marker t)
+           (centaur-tabs-modified-marker "●"))
+  :config
+  (centaur-tabs-mode t))
+
+;; Persp-mode
+(use-package persp-mode
+  :init (setq persp-keymap-prefix (kbd "C-c w"))
+  :config
+  ;; (setq wg-morph-on nil) ;; switch off animation
+  (setq persp-auto-resume-time 0)
+  (add-hook 'after-init-hook #'(lambda () (persp-mode 1))))
+#+end_src
+* Git
+#+begin_src elisp
+;; Magit
+(use-package magit
+  :bind
+  (("C-c g" . magit-status)
+   ("s-g" . magit-status)))
+
+;; git-gutter
+(use-package git-gutter
+  :diminish (git-gutter-mode)
+  :custom
+  (git-gutter:modified-sign  "~")
+  (git-gutter:added-sign  "+")
+  (git-gutter:deleted-sign  "-")
+  :custom-face
+  (git-gutter:modified  ((t (:background "#f1fa8c"))))
+  (git-gutter:added  ((t (:background "#50fa7b"))))
+  (git-gutter:deleted  ((t (:background "#ff79c6"))))
+  :config
+  (global-git-gutter-mode 1))
+
+(use-package forge
+  :after magit)
+
+(use-package git-timemachine
+  :bind (:map vc-prefix-map
+              ("t" . git-timemachine)))
+
+(use-package browse-at-remote
+  :bind (:map vc-prefix-map
+              ("o" . browse-at-remote)))
+
+(use-package blamer
+  :commands (blamer-mode))
+#+end_src
+* Treemacs
+#+begin_src elisp
+(use-package treemacs
+  :init
+  (setq treemacs-follow-after-init t
+        treemacs-project-follow-mode t
+        treemacs-git-commit-diff-mode t
+        treemacs-file-follow-delay 2
+        treemacs-show-cursor nil
+        treemacs-silent-filewatch t
+        treemacs-silent-refresh t)
+  :bind (("<f1>" . treemacs)
+         (:map treemacs-mode-map
+               ("<mouse-1>" . treemacs-single-click-expand-action))))
+#+end_src
+* Shell
+#+begin_src elisp
+  ;; Tramp
+  (setq tramp-default-method "ssh"
+        password-cache-expiry 36000)
+
+  ;; bash-completion
+  ;; (use-package bash-completion
+  ;;   :defer t
+  ;;   :when (eq system-type 'gnu/linux)
+  ;;   :init
+  ;;   (autoload 'bash-completion-dynamic-complete
+  ;;     "bash-completion"
+  ;;     "BASH completion hook")
+  ;;   (add-hook 'shell-dynamic-complete-functions
+  ;;             'bash-completion-dynamic-complete))
+
+  ;; exec-path-from-shell
+  ;; (use-package exec-path-from-shell
+  ;;   :defer t
+  ;;   :when (eq system-type 'gnu/linux)
+  ;;   :init
+  ;;   (exec-path-from-shell-initialize))
+
+  ;; vterm
+  (use-package vterm
+    :defer t
+    :when (eq system-type 'gnu/linux)
+    :config
+    (setq vterm-shell "zsh")
+    :bind (:map vterm-mode-map
+                ("<f2>" . shell-pop)))
+
+  ;; shell-pop
+  (use-package shell-pop
+    :bind (("<f2>" . shell-pop))
+    :init
+    (setq shell-pop-window-size 30
+          shell-pop-shell-type
+          (cond ((fboundp 'vterm) '("vterm" "*vterm*" #'vterm))
+                ((eq system-type 'windows-nt) '("eshell" "*eshell*" #'eshell))
+                (t '("terminal" "*terminal*"
+                     (lambda () (term shell-pop-term-shell)))))))
+
+  (use-package journalctl-mode
+    :defer t)
+#+end_src
+* Programming Languages
+#+begin_src elisp
+;; Compilation
+(setq compilation-ask-about-save nil  ;Just save before compiling
+      compilation-always-kill t       ;kill old compile processes before new one
+      compilation-scroll-output 'first-error ; Automatically scroll to first error
+      )
+
+(editorconfig-mode t)
+
+(use-package indent-bars
+  :defer t)
+
+(use-package quickrun
+  :defer t)
+
+(use-package reformatter
+  :defer t
+  :config
+  (reformatter-define nixfmt
+    :program "nixfmt"
+    )
+  ;; Experimental.
+  ;; (reformatter-define golint
+  ;;   :program "golint"
+  ;;   :stdin nil
+  ;;   :stdout nil
+  ;;   :args (list (buffer-file-name)))
+  )
+
+;; tree-sitter
+(use-package treesit-auto
+  :when (eq system-type 'gnu/linux)
+  :config
+  (global-treesit-auto-mode))
+
+(use-package list-environment
+  :commands (list-environment))
+
+;; conf-mode
+(use-package conf-mode
+  :mode
+  "/credentials$" "\\.accept_keywords$"
+  "\\lfrc$" "\\.keywords$" "\\.license$"
+  "\\.mask$" "\\.unmask$" "\\.use$")
+(global-set-key [remap conf-space-keywords] #'project-find-file)
+
+;; SQL
+(use-package sql-indent
+  :mode ("\\.sql\\'")
+  :interpreter (("sql" . sql-mode)))
+
+;; powershell
+(use-package powershell
+  :mode ("\\.ps1'"))
+
+;; docker
+(use-package dockerfile-mode
+  :mode ("Dockerfile\\'"))
+
+;; json
+(use-package json-mode
+  :mode ("\\.json'"))
+
+(use-package json-reformat
+  :commands json-reformat-region)
+
+;; toml
+(use-package toml-mode
+  :mode ("\\.toml'"))
+
+;; yaml
+(use-package yaml-mode
+  :mode ("\\.yml'" "\\.yaml'"))
+
+;; lua
+(use-package lua-mode
+  :mode ("\\.lua'"))
+
+(use-package license-templates
+  :defer t)
+
+;; just
+(use-package just-mode
+  :mode ("\\.just'" "justfile\\'"))
+
+;; (use-package go-mode
+;;   :commands go-mode
+;;   :config
+;;   (setq gofmt-command "goimports")
+;;   (add-hook 'before-save-hook 'gofmt-before-save))
+
+;;; Ruby
+;; (use-package ruby-mode
+;;   :defvar ruby-mode-map
+;;   :custom (ruby-insert-encoding-magic-comment . nil)
+;;   :hook (ruby-mode-hook . lsp)
+;;   :config
+;;   (dvorak-set-key-prog ruby-mode-map)
+;;   (use-package inf-ruby
+;;     :hook (ruby-mode-hook . inf-ruby-minor-mode)))
+
+(use-package macrostep
+  :bind (:map elisp-mode-map
+         ("C-c e" . macrostep-expand)
+         :map lisp-interaction-mode-map
+         ("C-c e" . macrostep-expand)))
+
+#+end_src
+** prog-mode
+#+begin_src elisp
+;; prog-mode 编程模式设定
+(defun my-prog-settings ()
+  "My owner my-prog-settings."
+  (hl-line-mode)               ;高亮当前行
+  (whitespace-mode)            ;显示空格
+  (display-line-numbers-mode)) ;显示行号
+(add-hook 'prog-mode-hook 'my-prog-settings)
+#+end_src
+** markdown
+#+begin_src elisp
+  (use-package markdown-mode
+    :config
+    (setq markdown-hide-urls nil
+          markdown-fontify-code-blocks-natively t)
+    :mode (("\\.md\\'" . gfm-mode)
+           ("README\\'" . gfm-mode)))
+
+  (use-package markdown-preview-mode
+    :defer t)
+#+end_src
+** python
+#+begin_src elisp
+(use-package python-mode
+  :mode ("\\.py\\'")
+  :config
+  (setq python-indent-offset 4
+        python-indent 4
+        indent-tabs-mode nil
+        default-tab-width 4
+        python-shell-interpreter "python3"))
+
+;; (use-package live-py-mode)
+
+;; (use-package lsp-python-ms
+;;   :hook (python-mode . (lambda ()
+;;                           (require 'lsp-python-ms)
+;;                           (lsp))))
+                                        ; or lsp-deferred
+#+end_src
+** rust
+#+begin_src elisp
+(use-package rustic
+  :mode "\\.rs$"
+  :custom
+  (rustic-format-display-method 'ignore) ; Rustfmtのメッセージをポップアップしない
+  (rustic-format-trigger 'on-save)
+  :after flycheck
+  :config
+  (push 'rustic-clippy flycheck-checkers))
+
+;; (use-package cargo
+;;   :defer t
+;;   :hook (rust-mode . cargo-minor-mode))
+#+end_src
+** elisp
+#+begin_src elisp
+(use-package elisp-mode
+  :ensure nil
+  :hook (elisp-mode . (lambda () (setq mode-name "ξ ")))
+  ;; :bind (:map elisp-mode-map
+  ;;             ("C-c e" . fc-eval-and-replace))
+  )
+
+(use-package slime
+  :commands (slime))
+#+end_src
+** nix
+#+begin_src elisp
+(use-package direnv
+  :after lsp
+  :delight 'direnv-mode
+  :config
+  ;; Ensures that external dependencies are available before they are called.
+  (add-hook 'prog-mode-hook #'direnv--maybe-update-environment)
+  ;; XXX cargo culted.  Investigate
+  (add-to-list 'direnv-non-file-modes 'vterm-mode)
+  (setq direnv-always-show-summary nil)
+  (direnv-mode 1))
+
+(use-package nix-mode
+  :mode ("\\.nix'"))
+
+(use-package nixpkgs-fmt
+  :defer t)
+#+end_src
+* LSP
+#+begin_src elisp
+;; flycheck
+(use-package flycheck
+  :defer t
+  :diminish " ✓"
+  :hook (prog-mode . flycheck-mode)
+  :init
+  (setq flycheck-disabled-checkers '(
+                                     elisp
+                                     elisp-checkdoc
+                                     ;; sh-shellscript
+                                     )))
+
+;; tempel
+;; (use-package tempel
+;;   :bind (("M-+" . tempel-complete)
+;;          ("M-*" . tempel-insert)
+;;          :map tempel-map
+;;          ("M-]" . tempel-next)
+;;          ("M-[" . tempel-previous)))
+
+;; yasnippet
+;; (use-package yasnippet
+;;   :defer t
+;;   :custom
+;;   (yas-prompt-functions '(yas-completing-prompt))
+;;   :config
+;;   (yas-reload-all)
+;;   :hook
+;;   ((prog-mode feature-mode)  . yas-minor-mode))
+
+;; eglot
+(use-package eglot
+  :when (eq system-type 'gnu/linux)
+  :defer t
+  :custom
+  (eglot-autoshutdown t) ; shutdown after closing the last managed buffer
+  (eglot-sync-connect 0) ; async, do not block
+  (eglot-extend-to-xref t) ; can be interesting!
+  ;; (eglot-ignored-server-capabilities
+  ;;  '(:hoverProvider
+  ;;    :documentHighlightProvider
+  ;;    :documentFormattingProvider
+  ;;    :documentRangeFormattingProvider
+  ;;    :documentOnTypeFormattingProvider
+  ;;    :colorProvider
+  ;;    :foldingRangeProvider))
+  :hook (
+         (c-mode . eglot-ensure)
+         (c++-mode . eglot-ensure)
+         (go-mode . eglot-ensure)
+         (python-mode . eglot-ensure)
+         (rust-mode . eglot-ensure)
+         (nix-mode . eglot-ensure)
+         (markdown-mode . eglot-ensure)
+         )
+  :config
+  (add-to-list 'eglot-server-programs '(c-mode . ("clangd")))
+  (add-to-list 'eglot-server-programs '(c++-mode . ("clangd")))
+  (add-to-list 'eglot-server-programs '(go-mode . ("gopls")))
+  (add-to-list 'eglot-server-programs '(python-mode . ("pyls")))
+  (add-to-list 'eglot-server-programs '(rust-mode . ("rust-analyzer")))
+  (add-to-list 'eglot-server-programs '(nix-mode . ("nixd")))
+  (add-to-list 'eglot-server-programs '(markdown-mode . ("efm-langserver")))
+  )
+
+;; lsp-bridge
+;; (use-package lsp-bridge
+;;   :ensure nil
+;;   :config
+;;   (global-lsp-bridge-mode))
+
+
+;; lsp-mode https://github.com/kira-bruneau/home-config/blob/main/package/emacs/config/setup/minor-modes/lsp.el
+;; (use-package lsp-mode
+;;   :commands lsp-deferred lsp
+;;   :hook ((python-mode-hook . lsp-deferred)
+;;          (rust-mode-hook . lsp-deferred)))
+
+;; (use-package lsp-ui
+;;   :commands lsp-ui-mode)
+;; (use-package lsp-ivy
+;;   :commands lsp-ivy-workspace-symbol)
+
+;; (use-package consult-lsp
+;;   :package t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; (use-package lsp-mode
+;;   :require t
+;;   :commands lsp
+;;   :hook
+;;   (go-mode-hook . lsp)
+;;   (web-mode-hook . lsp)
+;;   (elixir-mode-hook . lsp)
+;;   (typescript-mode-hook . lsp)
+;;   :config
+;;   (use-package lsp-ui
+;;     :require t
+;;     :hook
+;;     (lsp-mode-hook . lsp-ui-mode)
+;;     :custom
+;;     (lsp-ui-sideline-enable . nil)
+;;     (lsp-prefer-flymake . nil)
+;;     (lsp-print-performance . t)
+;;     :config
+;;     (define-key lsp-ui-mode-map [remap xref-find-definitions] 'lsp-ui-peek-find-definitions)
+;;     (define-key lsp-ui-mode-map [remap xref-find-references] 'lsp-ui-peek-find-references)
+;;     (define-key lsp-ui-mode-map (kbd "C-c i") 'lsp-ui-imenu)
+;;     (define-key lsp-ui-mode-map (kbd "s-l") 'hydra-lsp/body)
+;;     (setq lsp-ui-doc-position 'bottom)
+;;     :hydra (hydra-lsp (:exit t :hint nil)
+;;                       "
+;;  Buffer^^               Server^^                   Symbol
+;; -------------------------------------------------------------------------------------
+;;  [_f_] format           [_M-r_] restart            [_d_] declaration  [_i_] implementation  [_o_] documentation
+;;  [_m_] imenu            [_S_]   shutdown           [_D_] definition   [_t_] type            [_r_] rename
+;;  [_x_] execute action   [_M-s_] describe session   [_R_] references   [_s_] signature"
+;;                       ("d" lsp-find-declaration)
+;;                       ("D" lsp-ui-peek-find-definitions)
+;;                       ("R" lsp-ui-peek-find-references)
+;;                       ("i" lsp-ui-peek-find-implementation)
+;;                       ("t" lsp-find-type-definition)
+;;                       ("s" lsp-signature-help)
+;;                       ("o" lsp-describe-thing-at-point)
+;;                       ("r" lsp-rename)
+
+;;                       ("f" lsp-format-buffer)
+;;                       ("m" lsp-ui-imenu)
+;;                       ("x" lsp-execute-code-action)
+
+;;                       ("M-s" lsp-describe-session)
+;;                       ("M-r" lsp-restart-workspace)
+;;                       ("S" lsp-shutdown-workspace))))
+
+
+#+end_src
+* Org Mode
+#+begin_src elisp
+
+  ;; Org-table font
+  (custom-set-faces
+   '(org-table ((t (:family "JetBrains Mono")))))
+
+  (setq org-startup-indented t
+        org-startup-truncated nil
+        org-hide-leading-stars t
+        org-ellipsis " \u25bc" ;; " ⤵" " ↴" " ➤" " ▼"
+        ;; org-columns-default-format "%50ITEM(Task) %10CLOCKSUM %16TIMESTAMP_IA"
+        org-refile-targets (quote ((nil :maxlevel . 9)
+                                   (org-agenda-files :maxlevel . 9)))
+        ;; org-agenda-files
+        ;; org-agenda-files (append (file-expand-wildcards "/*.org"))
+        ;; babel
+        org-confirm-babel-evaluate nil
+        org-support-shift-select t
+        org-src-fontify-natively t
+        org-src-tab-acts-natively t
+        ;; capture
+        org-capture-templates '(("t" "TODO"
+                                 entry (file+headline "TODO.org" "TODO")
+                                 "* TODO %? %T" :prepend t)
+                                ("j" "Journal"
+                                 entry (file+datetree "Journal.org")
+                                 "* Event: %?\n\n  %i\n\n"
+                                 :empty-lines 1)))
+
+
+
+  (bind-keys :prefix-map org-map
+             :prefix "C-c o"
+             ("l" . org-store-link)
+             ("a" . org-agenda)
+             ("c" . org-capture)
+             ("b" . org-switchb))
+
+  ;; org-babel-map
+  (with-eval-after-load 'org
+    (define-key org-babel-map (kbd "C-=") 'org-babel-mark-block))
+
+  ;; <s TAB: The old way, C-c C-, New way.
+  ;; (require 'org-tempo) ;; Startup blame
+
+  ;; babel
+  ;; (org-babel-do-load-languages 'org-babel-load-languages
+  ;;                              '((elisp . t)
+  ;;                                ;(C . t)
+  ;;                                ;(ditaa . t)
+  ;;                                (dot . t)
+  ;;                                ;(js . t)
+  ;;                                ;(css . t)
+  ;;                                ;(latex . t)
+  ;;                                ;(perl . t)
+  ;;                                ;(python . t)
+  ;;                                ;(ruby . t)
+  ;;                                ; (rust . t)
+  ;;                                ; (sh . t)
+  ;;                                (shell . t);
+  ;;                                ;(plantuml . t)
+  ;;                                ;(R . t)
+  ;;                                ;(clojure . t)
+  ;;                                ))
+
+
+  (use-package org-modern
+    :after org
+    :hook (org-mode . org-modern-mode))
+
+  ;; (use-package org-roam
+  ;;   :custom
+  ;;   (org-roam-directory (file-truename "~/Documents/org/"))
+  ;;   :bind (("C-c n l" . org-roam-buffer-toggle)
+  ;;          ("C-c n f" . org-roam-node-find)
+  ;;          ("C-c n g" . org-roam-graph)
+  ;;          ("C-c n i" . org-roam-node-insert)
+  ;;          ("C-c n c" . org-roam-capture)
+  ;;          ;; Dailies
+  ;;          ("C-c n j" . org-roam-dailies-capture-today))
+  ;;   :config
+  ;;   ;; If you're using a vertical completion framework, you might want a more informative completion interface
+  ;;   (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+  ;;   (org-roam-db-autosync-mode)
+  ;;   ;; If using org-roam-protocol
+  ;;   (require 'org-roam-protocol))
+
+
+  ;; (leaf org
+  ;;   :leaf-defer t
+  ;;   :bind (("C-c c" . org-capture)
+  ;;          ("C-c a" . org-agenda)
+  ;;          (:org-mode-map
+  ;;           ("C-c C-;" . org-edit-special))
+  ;;          (:org-src-mode-map
+  ;;           ("C-c C-;" . org-edit-src-exit)))
+  ;;   :mode ("\\.org$'" . org-mode)
+  ;;   ;; :hook  (org-mode . (lambda ()
+  ;;   ;;                      (set (make-local-variable 'system-time-locale) "C")))
+  ;;   :config
+  ;;   (setq org-directory "~/src/github.com/grugrut/PersonalProject/")
+  ;;   :custom
+  ;;   ;; TODO状態の設定
+  ;;   (org-todo-keywords . '((sequence "TODO(t)" "IN PROGRESS(i)" "|" "DONE(d)")
+  ;;                          (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" "MEETING")))
+  ;;   (org-todo-keyword-faces . '(("TODO" :foreground "red" :weight bold)
+  ;;                               ("STARTED" :foreground "cornflower blue" :weight bold)
+  ;;                               ("DONE" :foreground "green" :weight bold)
+  ;;                               ("WAITING" :foreground "orange" :weight bold)
+  ;;                               ("HOLD" :foreground "magenta" :weight bold)
+  ;;                               ("CANCELLED" :foreground "green" :weight bold)
+  ;;                               ("MEETING" :foreground "gren" :weight bold)))
+  ;;   (org-log-done . 'time)
+  ;;   (org-clock-persist . t)
+  ;;   (org-clock-out-when-done . t)
+  ;;   )
+#+end_src
+* Web
+#+begin_src elispxx
+(use-package css-mode
+  :ensure nil
+  :init (setq css-indent-offset 2))
+
+(use-package scss-mode
+  :init
+  ;; Disable complication on save
+  (setq scss-compile-at-save nil))
+
+(unless (fboundp 'less-css-mode)
+  (use-package less-css-mode))
+
+;; nxml
+(use-package nxml-mode
+  :ensure nil
+  :mode (("\\.xaml$" . xml-mode)))
+
+(use-package php-mode
+  :mode "\\.php$")
+
+(use-package typescript-mode
+  :mode ("\\.ts[x]\\'" . typescript-mode))
+
+;; JavaScript
+(use-package js-mode
+  :ensure nil
+  :defines (js-indent-level flycheck-javascript-eslint-executable)
+  :config
+  (setq js-indent-level 2)
+
+  (with-eval-after-load 'flycheck
+    ;; https://github.com/mantoni/eslint_d.js
+    ;; Install: npm -i -g eslint_d
+    (when (executable-find "eslint_d")
+      (setq flycheck-javascript-eslint-executable "eslint_d"))))
+
+
+(use-package js2-mode
+  :mode (("\\.js\\'" . js2-mode)
+         ("\\.jsx\\'" . js2-jsx-mode))
+  :interpreter (("node" . js2-mode)
+                ("node" . js2-jsx-mode))
+  :hook ((js2-mode . js2-imenu-extras-mode)
+         (js2-mode . js2-highlight-unused-variables-mode))
+  :config
+  (with-eval-after-load 'flycheck
+    (when (or (executable-find "eslint_d")
+              (executable-find "eslint")
+              (executable-find "jshint"))
+      (setq js2-mode-show-strict-warnings nil))))
+
+
+;; Adds node_modules/.bin directory to `exec_path'
+(use-package add-node-modules-path
+  :hook ((web-mode js-mode js2-mode) . add-node-modules-path))
+
+(use-package prettier
+  :diminish
+  :hook ((js-mode js2-mode css-mode sgml-mode web-mode) . prettier-mode)
+  :init (setq prettier-pre-warm 'none))
+
+;; TODO leaf
+;; (use-package prettier-js
+;;   :init
+;;   (defun prettier-js-mode-toggle-setup ()
+;;     "prettier-js-modeの有効無効キーバインドをprettier-js-modeが有効に出来るモードで使えるようにします。"
+;;     (interactive)
+;;     (add-node-modules-path)
+;;     ;; 全体フォーマットをEmacsではなくprettierが行うように
+;;     (local-set-key [remap indent-whole-buffer] 'prettier-js)
+;;     ;; M-iでprettierの一時的無効化が出来るように
+;;     (local-set-key (kbd "M-i") 'prettier-js-mode)
+;;     ;; prettierを有効化
+;;     (prettier-js-mode t)))
+
+(use-package web-mode
+  :mode ("\\.[agj]sp\\'"
+         "\\.as[cp]x\\'"
+         "\\.djhtml\\'"
+         "\\.ejs\\'"
+         "\\.erb\\'"
+         "\\.html?\\'"
+         "\\.jsx?\\'"
+         "\\.mjsx?\\'"
+         "\\.mustache\\'"
+         "\\.php\\'"
+         "\\.phtml\\'"
+         "\\.tpl\\'"
+         "\\.tsx?\\'"
+         "\\.vue\\'")
+  :config
+  (setq web-mode-markup-indent-offset 2
+        web-mode-css-indent-offset 2
+        web-mode-code-indent-offset 2
+        web-mode-indent-style 2))
+
+
+;; REST
+;; (use-package restclient
+;;   :mode ("\\.http\\'" . restclient-mode)
+;;   :config
+;;   (use-package restclient-test
+;;     :diminish
+;;     :hook (restclient-mode . restclient-test-mode))
+
+;;   (with-eval-after-load 'company
+;;     (use-package company-restclient
+;;       :defines company-backends
+;;       :init (add-to-list 'company-backends 'company-restclient))))
+#+end_src
+* C
+#+begin_src elisp
+(use-package cc-mode
+  :ensure nil
+  :bind (:map c-mode-base-map
+              ("<f12>" . compile))
+  :init (setq-default c-basic-offset 4))
+
+;; (leaf cc-mode
+;;       :defvar c-mode-base-map
+;;       :hook
+;;       ((c-mode-hook . lsp)
+;;        (c++-mode-hook . lsp))
+;;       :config
+;;       (leaf ccls :ensure t)
+;;       (leaf clang-format
+;;             :ensure t
+;;             :init
+;;             (defun set-hook-after-save-clang-format ()
+;;               (add-hook 'after-save-hook 'clang-format-buffer t t))
+;;             :hook ((c-mode-hook . set-hook-after-save-clang-format)
+;;                    (c++-mode-hook . set-hook-after-save-clang-format))
+;;             :bind ((:c-mode-map ([remap indent-whole-buffer] . clang-format-buffer))
+;;                    (:c++-mode-map ([remap indent-whole-buffer] . clang-format-buffer))))
+;;       (dvorak-set-key-prog c-mode-base-map))
+
+;; (leaf c-mode
+
+;;   :config
+;;   (leaf google-c-style
+;;     :ensure t
+;;     :commands google-set-c-style)
+
+;;   (leaf clang-format
+;;     :ensure t
+;;     :commands clang-format clang-format-buffer)
+
+;;   (leaf ccls
+;;     :ensure t
+;;     :custom ((indent-tabs-mode . t)
+;;              (tab-width . 2)
+;;              (c-basic-offset . 2))
+;;     :hook ((c-mode-hook c++-mode-hook)
+;;            .
+;;            (lambda ()
+;;              (lsp)))))
+
+
+;; Modern C++ syntax highlighting
+;; (leaf modern-cpp-font-lock
+;;   :commands modern-c++-font-lock-mode
+;;   :hook ((c++-mode-hook . modern-c++-font-lock-mode)))
+
+;; Major mode for working with CMake files
+;; (leaf cmake-mode
+;;   :mode ("CMakeLists\\.txt\\'" "\\.cmake\\'"))
+
+;; Syntax highlighting for CMake files
+;; (leaf cmake-font-lock
+;;   :after cmake-mode
+;;   :commands cmake-font-lock-activate
+;;   :hook ((cmake-mode-hook . cmake-font-lock-activate)))
+
+;; Package made for enabling IDE-like features for CMake projects
+;; (use-package cmake-ide
+;;   :after projectile
+;;   :hook (c++-mode . my/cmake-ide-find-project)
+;;   :preface
+;;   (defun my/cmake-ide-find-project ()
+;;     "Finds the directory of the project for cmake-ide."
+;;     (with-eval-after-load 'projectile
+;;       (setq cmake-ide-project-dir (projectile-project-root))
+;;       (setq cmake-ide-build-dir (concat cmake-ide-project-dir "build")))
+;;     (setq cmake-ide-compile-command
+;;           (concat "cd " cmake-ide-build-dir " && cmake .. && make"))
+;;     (cmake-ide-load-db))
+
+;;   (defun my/switch-to-compilation-window ()
+;;     "Switches to the *compilation* buffer after compilation."
+;;     (other-window 1))
+;;   :bind ([remap comment-region] . cmake-ide-compile)
+;;   :init (cmake-ide-setup)
+;;   :config (advice-add 'cmake-ide-compile :after #'my/switch-to-compilation-window))
+
+
+;; (use-package ccls
+;;   :after projectile
+;;   :demand t
+;;   :ensure-system-package ccls
+;;   :custom
+;;   (ccls-sem-highlight-method 'font-lock)
+;;   (ccls-args nil)
+;;   (ccls-executable (executable-find "ccls"))
+;;   (projectile-project-root-files-top-down-recurring
+;;    (append '("compile_commands.json" ".ccls")
+;;            projectile-project-root-files-top-down-recurring))
+;;   :config (add-to-list 'projectile-globally-ignored-directories ".ccls-cache"))
+
+;;; JAVA
+;; (leaf lsp-java :ensure t :hook (java-mode-hook . lsp))
+
+;; (leaf groovy-mode :ensure t)
+#+end_src
+* Links
+https://orgmode.org/manual/Working-with-Source-Code.html

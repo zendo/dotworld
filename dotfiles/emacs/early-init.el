@@ -1,4 +1,4 @@
-;;; early-init.el --- -*- lexical-binding: t -*-
+;;; early-init.el --- Early Initialization -*- lexical-binding: t; -*-
 
 ;; Prevent unwanted runtime compilation for gccemacs (native-comp) users;
 ;; packages are compiled ahead-of-time when they are installed and site files
@@ -47,6 +47,8 @@
 (defun display-startup-echo-area-message ()
   "Delete startup message"
   (message ""))
+
+(org-babel-load-file (expand-file-name "init.org" user-emacs-directory))
 
 (provide 'early-init)
 ;;; early-init.el ends here

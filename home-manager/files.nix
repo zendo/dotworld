@@ -22,8 +22,7 @@ in
     "starship.toml".source = ../dotfiles/starship.toml;
 
     "doom".source = linkFlake "dotfiles/doom";
-    "emacs/elisp".source = linkFlake "dotfiles/emacs/elisp";
-    "emacs/init.el".source = linkFlake "dotfiles/emacs/init.el";
+    "emacs/init.org".source = linkFlake "dotfiles/emacs/init.org";
     "emacs/early-init.el".source = linkFlake "dotfiles/emacs/early-init.el";
 
     "mpv".source = linkFlake "dotfiles/mpv";
