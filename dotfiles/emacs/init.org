@@ -1,6 +1,7 @@
 #+TITLE: My emacs literate configuration
 #+DATE: \today
 #+AUTHOR: zendo
+#+STARTUP: overview
 
 * Startup Performance
 #+begin_src elisp
@@ -11,9 +12,6 @@
 
   ;; Prevent flash of unstyled modeline at startup
   (setq-default mode-line-format nil)
-
-  ;; Don't pass case-insensitive to `auto-mode-alist'
-  (setq auto-mode-case-fold nil)
 
   ;; Control use of local variables in files you visit.
   ;; :safe means set the safe variables, and ignore the rest.
@@ -30,6 +28,13 @@
 
 * Silence Warnings
 #+begin_src elisp
+  (setq confirm-kill-processes nil
+        visible-bell 1)
+
+  ;; Allow for shorter responses: "y" for yes and "n" for no.
+  (setq read-answer-short t)
+  ;; (fset 'yes-or-no-p 'y-or-n-p)
+
   ;; disable warnings
   (setq warning-minimum-level :emergency
         byte-compile-warnings '(not
@@ -51,8 +56,10 @@
   (put 'downcase-region 'disabled nil)
   (put 'erase-buffer 'disabled nil)
   (put 'scroll-left 'disabled nil)
+  (put 'list-timers 'disabled nil)
 #+end_src
-* Package Initialize
+
+* Package Initialization
 #+begin_src elisp
   ;; repositories
   (setq package-archives '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
@@ -60,9 +67,8 @@
 
   ;; Initialize packages
   (package-initialize)
-#+end_src
-** use-package, bind-key, diminish
-#+begin_src elisp
+
+  ;; use-package
   (setq use-package-always-ensure t
         ;; use-package-always-defer t
         ;; use-package-verbose t
@@ -76,6 +82,7 @@
     (diminish 'eldoc-mode) ;echo area 显示函数的参数列表
     (diminish 'visual-line-mode))
 #+end_src
+
 ** library
 #+begin_src elisp
   (require 'cl-lib)
@@ -83,8 +90,9 @@
   (use-package s) ;string manipulation library
   (use-package f) ;file manipulation
 #+end_src
+
 * OS Setup
-** vars
+** defined
 #+begin_src elisp
   (defconst IS-MAC     (eq system-type 'darwin))
   (defconst IS-LINUX   (eq system-type 'gnu/linux))
@@ -94,6 +102,7 @@
                             (string-match-p "Microsoft"
                                             (shell-command-to-string "uname -a"))))
 #+end_src
+
 ** linux
 #+begin_src elisp
   (when IS-LINUX
@@ -105,6 +114,7 @@
                         (font-spec :family "Noto Sans CJK SC" :size 12)))
     )
 #+end_src
+
 ** wsl
 #+begin_src elisp
   (when IS-WSL
@@ -115,6 +125,7 @@
           select-enable-primary nil
           interprogram-cut-function #'gui-select-text))
 #+end_src
+
 ** windows
 #+begin_src elisp
   (when IS-WINDOWS
@@ -128,20 +139,10 @@
                         charset
                         (font-spec :family "Microsoft Yahei" :size 24))))
 #+end_src
-* Basic
+
+* emacsclient
 #+BEGIN_SRC elisp
-  ;; interface
-  (setq confirm-kill-processes nil
-        ;; mouse-autoselect-window t
-        visible-bell 1                ;关闭错误警示
-        system-time-locale "C"        ;使用英文时间格式
-        sentence-end-double-space nil ;Sentences should end in one space
-        display-time-24hr-format t
-        sentence-end "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*" ;识别中文标点符号
-        require-final-newline t)
-
-  (fset 'yes-or-no-p 'y-or-n-p)
-
+  ;; server
   (unless (and (fboundp 'server-running-p)
                (server-running-p))
     (server-start))
@@ -152,126 +153,9 @@
               (setq inhibit-message t)
               (run-with-idle-timer 0 nil (lambda () (setq inhibit-message nil)))))
 #+END_SRC
-* Buffers
-#+begin_src elisp
-  ;; ibuffer
-  (defalias 'list-buffers 'ibuffer)
-  (setq ibuffer-expert t) ; 直接操作不询问
-  (setq ibuffer-use-other-window t)
-#+end_src
-* Spell
-#+begin_src elisp
-  (require 'flyspell)
-  (setq ispell-dictionary "en"        ;使用英文词典
-        ispell-program-name "aspell" ; use aspell instead of ispell
-        ispell-extra-args '("--sug-mode=ultra"))
-#+end_src
-* Editing
-#+begin_src elisp
-  (show-paren-mode 1)                         ;括号匹配 parens
-  (electric-pair-mode t)                      ;自动补全括号
-  (delete-selection-mode t)                   ;overwrite selected text
-  ;; (global-visual-line-mode 1)                 ;折叠 word wrap
-  (global-prettify-symbols-mode 1)            ;Show lambda as λ.
 
-  (setq-default frame-title-format "%b (%f)") ;标题栏显示正在编辑的文件名
-#+end_src
-** tab and spaces
-#+begin_src elisp
-  (setq-default tab-width 4
-                indent-tabs-mode nil) ;indent with spaces, never with TABs
-#+end_src
-** coding system (UTF-8)
-#+begin_src elisp
-  ;; Set UTF-8 as the default coding system
-  (when (fboundp 'set-charset-priority)
-    (set-charset-priority 'unicode))
-  (prefer-coding-system 'utf-8)
-  (setq locale-coding-system 'utf-8)
-  (setq system-time-locale "C")
-  (unless (eq system-type 'windows-nt)
-    (set-selection-coding-system 'utf-8))
-#+end_src
-** whitespace
-#+begin_src elisp
-  (setq whitespace-action '(auto-cleanup)  ;automatically clean up bad whitespace
-        whitespace-style '(face
-                           trailing space-before-tab
-                           indentation empty space-after-tab))
-  (whitespace-mode 1)
-#+end_src
-* Backup
-#+begin_src elisp
-;save system clipboard before emacs clipboard
-(setq save-interprogram-paste-before-kill t)
-
-;; 备份 Backup
-(global-auto-revert-mode 1)        ;自动加载被外部修改过的文件
-(setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups"))))
-(setq make-backup-files t          ;备份文件 backup~
-      auto-save-default nil        ;stop creating #autosave# files
-      create-lockfiles nil         ;stop creating .#lockfile# files 多人编辑中
-      delete-by-moving-to-trash t) ;删除至回收站
-(setq backup-by-copying t          ; don't clobber symlinks
-      kept-new-versions 10         ; keep 10 latest versions
-      kept-old-versions 0          ; don't bother with old versions
-      delete-old-versions t        ; don't ask about deleting old versions
-      version-control t            ; number backups
-      vc-make-backup-files t)      ; backup version controlled files
-
-
-;; 自动保存 autosave
-(auto-save-visited-mode 1)
-;; (setq auto-save-visited-interval 15) ;default is 5s
-(add-function :after after-focus-change-function (lambda () (save-some-buffers t)))
-
-;; save-place 记住光标所在位置
-(setq save-place-file (expand-file-name ".saveplace" user-emacs-directory))
-(save-place-mode 1)
-
-;; savehist
-(setq savehist-file (expand-file-name ".savehist" user-emacs-directory)
-      savehist-save-minibuffer-history t
-      savehist-autosave-interval 60
-      savehist-additional-variables '(kill-ring
-                                      search-ring
-                                      regexp-search-ring))
-(savehist-mode 1)
-
-;; bookmarks
-(setq bookmark-default-file (expand-file-name ".bookmarks" user-emacs-directory)
-      bookmark-save-flag 1              ;automatically save when changed
-      )
-
-;; recentf
-(setq recentf-auto-cleanup 'never ;disable before we start recentf!
-      recentf-max-saved-items 50
-      recentf-max-menu-items 15
-      recentf-save-file (expand-file-name ".recentf" user-emacs-directory)
-      recentf-exclude
-      '("COMMIT" "autoloads" "archive-contents" "eld" "elpa" "bookmarks" "session"
-        "^/tmp/" "\\.?ido\\.last$" "\\.revive$" "/TAGS$" ".cache" "persp-auto-save"
-        ".recentf" "emacs_backup" "\\.\\(?:gz\\|gif\\|svg\\|png\\|jpe?g\\)$"))
-(recentf-mode 1)
-
-;; undo-fu
-(use-package undo-fu)
-
-;; undo-fu-session
-(use-package undo-fu-session
-  :custom
-  (undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'"))
-  :config
-  (global-undo-fu-session-mode 1))
-
-;; undo-tree C-x u
-(use-package vundo
-  :bind (("C-x u" . vundo))
-  :config
-  (setq vundo-glyph-alist vundo-unicode-symbols)
-  (setq vundo-roll-back-on-quit nil))
-#+end_src
-* Themes icons
+* Interface
+** Themes
 #+begin_src elisp
   (use-package doom-themes)
   (load-theme 'doom-tomorrow-night t)
@@ -290,7 +174,10 @@
   ;;   :config
   ;;   (setq haki-region "#2e8b6d")
   ;;   (load-theme 'haki t))
+#+end_src
 
+** Icons
+#+begin_src elisp
   (use-package nerd-icons)
 
   (use-package nerd-icons-completion
@@ -307,11 +194,14 @@
     :hook
     (dired-mode . nerd-icons-dired-mode))
 #+end_src
-* Mode line
+
+** Mode line
 #+begin_src elisp
   (column-number-mode t)      ;显示列数
   (size-indication-mode t)    ;显示文件大小
-  ;; (display-time-mode 1)       ;显示时间
+  (display-time-mode 1)       ;显示时间
+  (setq display-time-24hr-format t)
+  (setq system-time-locale "C") ;使用英文时间格式
   ;; (unless (string-match-p "^Power N/A" (battery))
   ;;   (display-battery-mode 1))
 
@@ -326,13 +216,244 @@
     :config
     (mood-line-mode))
 #+end_src
+
+** Tab line mode
+#+begin_src elisp
+  (use-package centaur-tabs
+    :custom ((centaur-tabs-height 28)
+             (centaur-tabs-style "wave")
+             (centaur-tabs-set-icons t)
+             (centaur-tabs-icon-type 'nerd-icons)
+             (centaur-tabs-set-bar 'over)
+             (centaur-tabs-set-close-button nil)
+             (centaur-tabs-set-modified-marker t)
+             (centaur-tabs-modified-marker "●"))
+    :config
+    (centaur-tabs-mode t))
+#+end_src
+
+** Dashboard
+#+begin_src elisp
+  (use-package dashboard
+  ;; :diminish (dashboard-mode page-break-lines-mode)
+    :custom
+    (dashboard-startup-banner 2)
+    (dashboard-set-heading-icons t)
+    (dashboard-set-file-icons t)
+    (dashboard-set-footer nil)
+    (dashboard-center-content t)
+    (dashboard-icon-type 'nerd-icons)
+    (dashboard-projects-backend 'project-el)
+    (dashboard-banner-logo-title nil) ; "Welcome to Emacs!"
+    (dashboard-items  '((recents  . 12)
+                        (bookmarks . 5)
+                        (projects . 5)))
+    :config
+    (dashboard-setup-startup-hook))
+#+end_src
+
+** Treemacs
+#+begin_src elisp
+(use-package treemacs
+  :init
+  (setq treemacs-follow-after-init t
+        treemacs-project-follow-mode t
+        treemacs-git-commit-diff-mode t
+        treemacs-file-follow-delay 2
+        treemacs-show-cursor nil
+        treemacs-silent-filewatch t
+        treemacs-silent-refresh t)
+  :bind (("<f1>" . treemacs)
+         (:map treemacs-mode-map
+               ("<mouse-1>" . treemacs-single-click-expand-action))))
+#+end_src
+
+** Buffer
+#+begin_src elisp
+  ;; ibuffer
+  (defalias 'list-buffers 'ibuffer)
+  (setq ibuffer-expert t) ; 直接操作不询问
+  (setq ibuffer-use-other-window t)
+#+end_src
+
+** Frame
+#+begin_src elisp
+  (setq-default frame-title-format "%b (%f)") ;标题栏显示正在编辑的文件名
+#+end_src
+
+** Window
+#+begin_src elisp
+  ;; winner C-c ←/→ undo/redo window
+  (winner-mode 1)
+
+  ;; ace-window
+  (use-package ace-window
+    :bind
+    (([remap other-window] . ace-window)
+     ("C-x 4 x" . ace-swap-window)
+     ("C-c w x" . ace-swap-window)))
+
+  ;; rotate
+  (use-package rotate
+    :bind (("C-c w v" . rotate-layout)))
+
+  ;; Persp-mode
+  (use-package persp-mode
+    :init (setq persp-keymap-prefix (kbd "C-c w"))
+    :config
+    ;; (setq wg-morph-on nil) ;; switch off animation
+    (setq persp-auto-resume-time 0)
+    (add-hook 'after-init-hook #'(lambda () (persp-mode 1))))
+#+end_src
+
+** Mouse
+#+begin_src elisp
+  (blink-cursor-mode -1)               ;禁用指针闪烁
+  (setq mouse-yank-at-point t)         ;禁用鼠标点击粘贴
+  (global-unset-key (kbd "<mouse-2>")) ;禁用鼠标中键
+  (fset 'mouse-save-then-kill 'ignore) ;禁用鼠标右键双击剪切
+
+  ;; Scroll
+  (pixel-scroll-precision-mode t)
+#+end_src
+
+* Spell
+#+begin_src elisp
+  (require 'flyspell)
+  (setq ispell-dictionary "en"        ;使用英文词典
+        ispell-program-name "aspell" ; use aspell instead of ispell
+        ispell-extra-args '("--sug-mode=ultra"))
+#+end_src
+
+* Editing
+#+begin_src elisp
+  (show-paren-mode 1)                         ;括号匹配 parens
+  (electric-pair-mode t)                      ;自动补全括号
+  (delete-selection-mode t)                   ;overwrite selected text
+  ;; (global-visual-line-mode 1)                 ;折叠 word wrap
+  (global-prettify-symbols-mode 1)            ;Show lambda as λ.
+
+  (setq-default tab-width 4
+                indent-tabs-mode nil) ;indent with spaces, never with TABs
+
+  (setq sentence-end-double-space nil ;Sentences should end in one space
+        sentence-end "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*" ;识别中文标点符号
+        require-final-newline t)
+#+end_src
+
+** coding system (UTF-8)
+#+begin_src elisp
+  ;; Set UTF-8 as the default coding system
+  (when (fboundp 'set-charset-priority)
+    (set-charset-priority 'unicode))
+  (prefer-coding-system 'utf-8)
+  (setq locale-coding-system 'utf-8)
+  (setq system-time-locale "C")
+  (unless (eq system-type 'windows-nt)
+    (set-selection-coding-system 'utf-8))
+#+end_src
+
+** whitespace
+#+begin_src elisp
+  (setq whitespace-action '(auto-cleanup)  ;automatically clean up bad whitespace
+        whitespace-style '(face
+                           trailing space-before-tab
+                           indentation empty space-after-tab))
+  (whitespace-mode 1)
+#+end_src
+
+* Backup
+#+begin_src elisp
+;save system clipboard before emacs clipboard
+(setq save-interprogram-paste-before-kill t)
+
+;; 备份 Backup
+(global-auto-revert-mode 1)        ;自动加载被外部修改过的文件
+(setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups"))))
+(setq make-backup-files t          ;备份文件 backup~
+      auto-save-default nil        ;stop creating #autosave# files
+      create-lockfiles nil         ;stop creating .#lockfile# files 多人编辑中
+      delete-by-moving-to-trash t) ;删除至回收站
+(setq backup-by-copying t          ; don't clobber symlinks
+      kept-new-versions 5          ; keep 10 latest versions
+      kept-old-versions 5          ; don't bother with old versions
+      delete-old-versions t        ; don't ask about deleting old versions
+      version-control t            ; number backups
+      vc-make-backup-files nil)    ; backup version controlled files
+
+
+;; 自动保存 autosave
+(auto-save-visited-mode 1)
+;; (setq auto-save-visited-interval 15) ;default is 5s
+(add-function :after after-focus-change-function (lambda () (save-some-buffers t)))
+#+end_src
+
+** recentf
+#+begin_src elisp
+  (setq recentf-auto-cleanup 'never ;disable before we start recentf!
+        recentf-max-saved-items 50
+        recentf-max-menu-items 15
+        recentf-save-file (expand-file-name ".recentf" user-emacs-directory)
+        recentf-exclude
+        '("COMMIT" "autoloads" "archive-contents" "eld" "elpa" "bookmarks" "session"
+          "^/tmp/" "\\.?ido\\.last$" "\\.revive$" "/TAGS$" ".cache" "persp-auto-save"
+          ".recentf" "emacs_backup" "\\.\\(?:gz\\|gif\\|svg\\|png\\|jpe?g\\)$"))
+  (recentf-mode 1)
+#+end_src
+
+** savehist
+#+begin_src elisp
+  (setq savehist-file (expand-file-name ".savehist" user-emacs-directory)
+        savehist-save-minibuffer-history t
+        savehist-autosave-interval 60
+        savehist-additional-variables
+        '(kill-ring                        ; clipboard
+          register-alist                   ; macros
+          mark-ring global-mark-ring       ; marks
+          search-ring regexp-search-ring)) ; searches
+
+  (savehist-mode 1)
+#+end_src
+
+** save-place
+Remember the last location within a file.
+
+#+begin_src elisp
+  (setq save-place-file (expand-file-name ".saveplace" user-emacs-directory))
+  (save-place-mode 1)
+#+end_src
+
+** bookmark
+#+begin_src elisp
+  (setq bookmark-default-file (expand-file-name ".bookmarks" user-emacs-directory)
+        bookmark-save-flag 1              ;automatically save when changed
+        )
+#+end_src
+
+** undo-fu
+#+begin_src elisp
+  ;; undo-fu
+  (use-package undo-fu)
+
+  ;; undo-fu-session
+  (use-package undo-fu-session
+    :custom
+    (undo-fu-session-incompatible-files '("/COMMIT_EDITMSG\\'" "/git-rebase-todo\\'"))
+    :config
+    (global-undo-fu-session-mode 1))
+#+end_src
+
+** vundo
+#+begin_src elisp
+  (use-package vundo
+    :bind (("C-x u" . vundo))
+    :config
+    (setq vundo-glyph-alist vundo-unicode-symbols)
+    (setq vundo-roll-back-on-quit nil))
+#+end_src
+
 * Packages
 #+begin_src elisp
-  (use-package helpful
-    :bind (("C-h f" . helpful-callable)
-           ("C-h v" . helpful-variable)
-           ("C-h k" . helpful-key)))
-
   ;; mwim ;moving to the beginning/end code
   (use-package mwim
     :bind (("C-a" . mwim-beginning-of-code-or-line)
@@ -351,12 +472,6 @@
   (use-package easy-kill
     :bind (([remap mark-sexp] . easy-mark)
            ([remap kill-ring-save] . easy-kill)))
-
-  ;; crux
-  (use-package crux
-    :bind (("C-k" . crux-smart-kill-line)
-           ("C-<return>" . crux-smart-open-line)
-           ("C-S-<return>" . crux-smart-open-line-above)))
 
   (use-package iedit
     :defer t)
@@ -378,25 +493,6 @@
     :commands smart-region-on
     :hook (after-init . smart-region-on))
 
-  (use-package anzu
-    :bind
-    ([remap query-replace] . anzu-query-replace)
-    ([remap query-replace-regexp] . anzu-query-replace-regexp))
-
-  ;; (use-package ctrlf
-  ;;   :config
-  ;;   (ctrlf-mode t))
-
-  ;; (use-package rg
-  ;;   :bind (("C-c s" . rg-menu))
-  ;;   :config
-  ;;   (setq rg-show-columns t)
-  ;;   (setq rg-default-alias-fallback "everything"))
-
-  ;; better than rg
-  (use-package deadgrep
-    :bind ("C-c C-s" . deadgrep))
-
   ;; Writable grep buffer
   (use-package wgrep
     :defer t)
@@ -408,34 +504,6 @@
   ;; 显示截断竖线
   (use-package fill-column-indicator
     :commands fci-mode)
-
-  ;; 高亮删除插入操作
-  ;; (use-package volatile-highlights
-  ;;   :config (volatile-highlights-mode t))
-
-  ;; rainbow 颜色代码显色 #00FF00
-  (use-package rainbow-mode
-    :commands rainbow-mode)
-
-  ;; rainbow-delimiters  彩虹括号
-  (use-package rainbow-delimiters
-    :hook (prog-mode . rainbow-delimiters-mode))
-
-  ;; same as beacon
-  (use-package scrollkeeper
-    :bind
-    (([remap scroll-up-command] . scrollkeeper-contents-up)
-     ([remap scroll-down-command] . scrollkeeper-contents-down)))
-
-  ;; (use-package beacon
-  ;;   :custom
-  ;;   (beacon-color "#aa3400")
-  ;;   ;; (beacon-size  64)
-  ;;   (beacon-blink-when-focused t)
-  ;;   :custom-face
-  ;;   (beacon-fallback-background ((t (:background "#556b2f"))))
-  ;;   :config
-  ;;   (beacon-mode 1))
 
   ;; Narrow/Widen
   ;; (use-package fancy-narrow
@@ -458,48 +526,104 @@
   (use-package avy-zap
     :bind (("M-z" . avy-zap-up-to-char-dwim)))
 
-  ;; ace-window
-  (use-package ace-window
-    :bind
-    (([remap other-window] . ace-window)
-     ("C-x 4 x" . ace-swap-window)
-     ("C-c w x" . ace-swap-window)))
-
-  ;; rotate
-  (use-package rotate
-    :bind (("C-c w v" . rotate-layout)))
-
   (use-package ialign
     :bind (("C-x l" . ialign)))
 
+  (use-package vlf)
+#+end_src
+
+** helpful
+#+begin_src elisp
+  (use-package helpful
+    :bind (("C-h f" . helpful-callable)
+           ("C-h v" . helpful-variable)
+           ("C-h k" . helpful-key)))
+#+end_src
+
+** crux
+#+begin_src elisp
+  (use-package crux
+    :bind (("C-k" . crux-smart-kill-line)
+           ("C-<return>" . crux-smart-open-line)
+           ("C-S-<return>" . crux-smart-open-line-above)))
+#+end_src
+
+** deadgrep
+#+begin_src elisp
+  (use-package deadgrep
+    :bind ("C-c C-s" . deadgrep))
+#+end_src
+
+** anzu
+#+begin_src elisp
+  (use-package anzu
+    :bind
+    ([remap query-replace] . anzu-query-replace)
+    ([remap query-replace-regexp] . anzu-query-replace-regexp))
+#+end_src
+
+** rainbow
+#+begin_src elisp
+  ;; rainbow 颜色代码显色 #00FF00
+  (use-package rainbow-mode
+    :commands rainbow-mode)
+
+  ;; rainbow-delimiters  彩虹括号
+  (use-package rainbow-delimiters
+    :hook (prog-mode . rainbow-delimiters-mode))
+#+end_src
+
+** scrollkeeper (like beacon)
+#+begin_src elisp
+  (use-package scrollkeeper
+    :bind
+    (([remap scroll-up-command] . scrollkeeper-contents-up)
+     ([remap scroll-down-command] . scrollkeeper-contents-down)))
+#+end_src
+
+** indent-bars
+#+begin_src elisp
+  (use-package indent-bars
+    :defer t)
+#+end_src
+
+** fanyi
+#+begin_src elisp
   (use-package fanyi
     :bind (("C-c y" . fanyi-dwim2)))
+#+end_src
 
+** nyan-mode
+#+begin_src elisp
+  (use-package nyan-mode
+    :commands nyan-mode)
+#+end_src
+
+** disk-usage
+#+begin_src elisp
+  (use-package disk-usage
+    :commands (disk-usage))
+#+end_src
+
+** gcmh
+Garbage Collector Magic Hack
+
+#+begin_src elisp
+  (use-package gcmh
+    :diminish
+    :init (setq gc-cons-threshold (* 80 1024 1024))
+    :hook (emacs-startup . gcmh-mode))
+#+end_src
+
+** Third Party
+#+begin_src elisp
   ; broken
   ;; C-x SPC, ?
   ;; (use-package speedrect
   ;;   :vc (:url "https://github.com/jdtsmith/speedrect"
   ;;             :rev :newest))
-
-  ;; (use-package auto-sudoedit
-  ;;   :delight
-  ;;   :commands auto-sudoedit-sudoedit
-  ;;   :init (defalias 'sudoedit #'auto-sudoedit-sudoedit))
-
-  (use-package nyan-mode
-    :commands nyan-mode)
-
-  (use-package vlf)
-
-  ;; Garbage Collector Magic Hack
-  (use-package gcmh
-    :diminish
-    :init (setq gc-cons-threshold (* 80 1024 1024))
-    :hook (emacs-startup . gcmh-mode))
-
-  (use-package disk-usage
-    :commands (disk-usage))
 #+end_src
+
 * Dired
 #+begin_src elisp
 (use-package diredfl
@@ -550,6 +674,7 @@
     (call-interactively #'dired-mark-files-regexp)
     (command-execute "tk")))
 #+end_src
+
 * Minibuffer
 ** vertico
 #+begin_src elisp
@@ -577,6 +702,7 @@
                    "  ")
                  cand)))
 #+end_src
+
 ** marginalia
 #+begin_src elisp
   ;; Enrich existing commands with completion annotations
@@ -585,6 +711,7 @@
     :init
     (marginalia-mode +1))
 #+end_src
+
 ** consult
 #+begin_src elisp
   ;; Consulting completing-read
@@ -600,6 +727,7 @@
            ("M-." . consult-imenu)
            ("M-m" . consult-mark)))
 #+end_src
+
 ** embark
 #+begin_src elisp
   ;; Mini-Buffer Actions Rooted in Keymaps
@@ -617,11 +745,14 @@
     :hook
     (embark-collect-mode . consult-preview-at-point-mode))
 #+end_src
+
 * Completions
 #+begin_src elisp
-  (setq ompletion-cycle-threshold 3  ;TAB cycle if there are only few candidates
-        tab-always-indent 'complete) ;Tab key indent first then completion.)
+  (setq tab-always-indent 'complete   ;Tab key indent first then completion.
+        completion-cycle-threshold 3  ;TAB cycle if there are only few candidates
+        )
 #+end_src
+
 ** Hippie Expand
 hippie expand is dabbrev expand on steroids
 
@@ -638,35 +769,35 @@ hippie expand is dabbrev expand on steroids
           try-complete-lisp-symbol-partially ;部分补全 lisp symbol
           try-complete-lisp-symbol))         ;补全 lisp symbol
 #+end_src
+
+** completion-preview-mode
+#+begin_src elispxx
+(add-hook 'prog-mode-hook #'completion-preview-mode)
+(keymap-set completion-preview-active-mode-map "M-n" #'completion-preview-next-candidate)
+(keymap-set completion-preview-active-mode-map "M-p" #'completion-preview-prev-candidate)
+#+end_src
+
 ** Company
 http://company-mode.github.io/manual/Getting-Started.html
 
 #+begin_src elisp
-(use-package company
-  :disabled t
-  :diminish " ▶"
-  :init
-  (global-company-mode)
-  :bind (:map company-active-map
-              ("<escape>" . company-abort))
-  :config
-  (setq company-global-modes '(not eshell-mode gud-mode))
-  (setq company-clang-insert-arguments t)
-  (setq company-dabbrev-downcase nil)
-  (setq company-dabbrev-ignore-case nil)
-  (setq company-minimum-prefix-length 1)
-  (setq company-tooltip-align-annotations t)
-  (setq company-idle-delay 0))
+  (use-package company
+    :custom
+    (company-minimum-prefix-length 4)
+    (company-dabbrev-minimum-length 8)
+    (company-selection-wrap-around t)
+    :init
+    (global-company-mode))
 
-(use-package company-flx
-  :after company
-  :init
-  (company-flx-mode))
+  (use-package company-posframe
+    :config
+    (company-posframe-mode 1))
 #+end_src
+
 ** Corfu
 https://github.com/minad/corfu
 
-#+begin_src elisp
+#+begin_src elispxx
 (use-package corfu
   ;; :disabled t
   :bind
@@ -728,7 +859,8 @@ https://github.com/minad/corfu
   :config
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 #+end_src
-** orderless
+
+** Orderless
 Completion style for matching regexps in any order
 #+begin_src elisp
   (use-package orderless
@@ -737,23 +869,15 @@ Completion style for matching regexps in any order
     (completion-category-defaults nil)
     (completion-category-overrides '((file (styles partial-completion)))))
 #+end_src
+
 * Keybindings
 #+BEGIN_SRC elisp
-  ;; Mouse
-  (blink-cursor-mode -1)               ;禁用指针闪烁
-  (setq mouse-yank-at-point t)         ;禁用鼠标点击粘贴
-  (global-unset-key (kbd "<mouse-2>")) ;禁用鼠标中键
-  (fset 'mouse-save-then-kill 'ignore) ;禁用鼠标右键双击剪切
-
-  ;; Scroll
-  (pixel-scroll-precision-mode t)
-
-  ;; winner C-c ←/→ undo/redo window
-  (winner-mode 1)
-
   (which-key-mode)
 
+  ;; Don't ping things that look like domain names.
+  (setq ffap-machine-p-known 'reject)
   (ffap-bindings) ;find-file-at-point, smarter C-x C-f when point on path or URL
+
   ;; (global-set-key (kbd "C-z") 'nil) ;unbind C-z
   (global-set-key (kbd "C-z") 'undo)
   (global-set-key (kbd "C-S-z") 'undo-redo)
@@ -854,105 +978,24 @@ Completion style for matching regexps in any order
   (use-package view
     :ensure nil
     :bind (:map view-mode-map
-                 ("j" . next-line)
-                 ("k" . previous-line)
-                 ("h" . backward-char)
-                 ("l" . forward-char)
-                 ("g" . goto-line)
-                 ("b" . View-scroll-page-backward))
+                ("j" . next-line)
+                ("k" . previous-line)
+                ("h" . backward-char)
+                ("l" . forward-char)
+                ("g" . goto-line)
+                ("b" . View-scroll-page-backward))
     :config
     (setq view-read-only t))
 
   ;; M-backspace 删除而非剪切
   (defun backward-delete-word (arg)
     "Delete characters backward until encountering the beginning of a word.
-  With argument ARG, do this that many times."
+    With argument ARG, do this that many times."
     (interactive "p")
     (delete-region (point) (progn (backward-word arg) (point))))
   (global-set-key [remap backward-kill-word] #'backward-delete-word)
 #+END_SRC
-* Functions
-** make-parent-directory
-#+begin_src elisp
-  ;;;###autoload
-  (defun make-parent-directory ()
-    "Make sure the directory of `buffer-file-name' exists."
-    (make-directory (file-name-directory buffer-file-name) t))
-  (add-hook 'find-file-not-found-functions #'make-parent-directory)
-#+end_src
-** align
-#+begin_src elisp
-  ;;;###autoload
-  (defun zendo/align-whitespace (start end)
-    "Align columns by whitespace"
-    (interactive "r")
-    (align-regexp start end
-                  "\\(\\s-*\\)\\s-" 1 0 t))
 
-  (defun zendo/align-& (start end)
-    "Align columns by ampersand"
-    (interactive "r")
-    (align-regexp start end
-                  "\\(\\s-*\\)&" 1 1 t))
-#+end_src
-** space to newline
-#+begin_src elisp
-  ;;;###autoload
-  (defun zendo/space-to-newline ()
-    "Replace space sequence to a newline char.
-  Works on current block or selection.
-
-  URL `http://ergoemacs.org/emacs/emacs_space_to_newline.html'
-  Version 2017-08-19"
-    (interactive)
-    (let* ( $p1 $p2 )
-      (if (use-region-p)
-          (progn
-            (setq $p1 (region-beginning))
-            (setq $p2 (region-end)))
-        (save-excursion
-          (if (re-search-backward "\n[ \t]*\n" nil "move")
-              (progn (re-search-forward "\n[ \t]*\n")
-                     (setq $p1 (point)))
-            (setq $p1 (point)))
-          (re-search-forward "\n[ \t]*\n" nil "move")
-          (skip-chars-backward " \t\n" )
-          (setq $p2 (point))))
-      (save-excursion
-        (save-restriction
-          (narrow-to-region $p1 $p2)
-          (goto-char (point-min))
-          (while (re-search-forward " +" nil t)
-            (replace-match "\n" ))))))
-#+end_src
-** screenshot
-https://github.com/terlar/emacs-config?tab=readme-ov-file#frame
-
-#+begin_src elisp
-  ;;;###autoload
-  (defun screenshot (type)
-    "Save a screenshot of the current frame as an image in TYPE format.
-  Saves to a temp file and puts the filename in the kill ring."
-    (let* ((ext (concat "." (symbol-name type)))
-           (filename (make-temp-file "Emacs-" nil ext))
-           (data (x-export-frames nil type)))
-      (with-temp-file filename
-        (insert data))
-      (kill-new filename)
-      (message filename)))
-
-  (defun screenshot-svg ()
-    "Save a screenshot of the current frame as an SVG image.
-  Saves to a temp file and puts the filename in the kill ring."
-    (interactive)
-    (screenshot 'svg))
-
-  (defun screenshot-png ()
-    "Save a screenshot of the current frame as an PNG image.
-  Saves to a temp file and puts the filename in the kill ring."
-    (interactive)
-    (screenshot 'png))
-#+end_src
 * Project
 #+begin_src elisp
 (define-key global-map (kbd "C-c p") project-prefix-map)
@@ -970,119 +1013,59 @@ https://github.com/terlar/emacs-config?tab=readme-ov-file#frame
           (project-eshell "Eshell" e)
           (magit-project-status "Magit" ?m)))
   )
-
-;; Dashboard
-(use-package dashboard
-;; :diminish (dashboard-mode page-break-lines-mode)
-  :custom
-  (dashboard-startup-banner 2)
-  (dashboard-set-heading-icons t)
-  (dashboard-set-file-icons t)
-  (dashboard-set-footer nil)
-  (dashboard-center-content t)
-  (dashboard-icon-type 'nerd-icons)
-  (dashboard-projects-backend 'project-el)
-  (dashboard-banner-logo-title nil) ; "Welcome to Emacs!"
-  (dashboard-items  '((recents  . 12)
-                      (bookmarks . 5)
-                      (projects . 5)))
-  :config
-  (dashboard-setup-startup-hook))
-
-(use-package centaur-tabs
-  :custom ((centaur-tabs-height 28)
-           (centaur-tabs-style "wave")
-           (centaur-tabs-set-icons t)
-           (centaur-tabs-icon-type 'nerd-icons)
-           (centaur-tabs-set-bar 'over)
-           (centaur-tabs-set-close-button nil)
-           (centaur-tabs-set-modified-marker t)
-           (centaur-tabs-modified-marker "●"))
-  :config
-  (centaur-tabs-mode t))
-
-;; Persp-mode
-(use-package persp-mode
-  :init (setq persp-keymap-prefix (kbd "C-c w"))
-  :config
-  ;; (setq wg-morph-on nil) ;; switch off animation
-  (setq persp-auto-resume-time 0)
-  (add-hook 'after-init-hook #'(lambda () (persp-mode 1))))
 #+end_src
+
 * Git
 #+begin_src elisp
-;; Magit
-(use-package magit
-  :bind
-  (("C-c g" . magit-status)
-   ("s-g" . magit-status)))
+  ;; Magit
+  (use-package magit
+    :bind
+    (("C-c g" . magit-status)
+     ("s-g" . magit-status))
+    :custom
+    (magit-format-file-function #'magit-format-file-nerd-icons))
 
-;; git-gutter
-(use-package git-gutter
-  :diminish (git-gutter-mode)
-  :custom
-  (git-gutter:modified-sign  "~")
-  (git-gutter:added-sign  "+")
-  (git-gutter:deleted-sign  "-")
-  :custom-face
-  (git-gutter:modified  ((t (:background "#f1fa8c"))))
-  (git-gutter:added  ((t (:background "#50fa7b"))))
-  (git-gutter:deleted  ((t (:background "#ff79c6"))))
-  :config
-  (global-git-gutter-mode 1))
+  ;; git-gutter
+  (use-package git-gutter
+    :diminish (git-gutter-mode)
+    :custom
+    (git-gutter:modified-sign  "~")
+    (git-gutter:added-sign  "+")
+    (git-gutter:deleted-sign  "-")
+    :custom-face
+    (git-gutter:modified  ((t (:background "#f1fa8c"))))
+    (git-gutter:added  ((t (:background "#50fa7b"))))
+    (git-gutter:deleted  ((t (:background "#ff79c6"))))
+    :config
+    (global-git-gutter-mode 1))
 
-(use-package forge
-  :after magit)
+  (use-package forge
+    :after magit)
 
-(use-package git-timemachine
-  :bind (:map vc-prefix-map
-              ("t" . git-timemachine)))
+  (use-package git-timemachine
+    :bind (:map vc-prefix-map
+                ("t" . git-timemachine)))
 
-(use-package browse-at-remote
-  :bind (:map vc-prefix-map
-              ("o" . browse-at-remote)))
+  (use-package browse-at-remote
+    :bind (:map vc-prefix-map
+                ("o" . browse-at-remote)))
 
-(use-package blamer
-  :commands (blamer-mode))
+  (use-package blamer
+    :commands (blamer-mode))
 #+end_src
-* Treemacs
-#+begin_src elisp
-(use-package treemacs
-  :init
-  (setq treemacs-follow-after-init t
-        treemacs-project-follow-mode t
-        treemacs-git-commit-diff-mode t
-        treemacs-file-follow-delay 2
-        treemacs-show-cursor nil
-        treemacs-silent-filewatch t
-        treemacs-silent-refresh t)
-  :bind (("<f1>" . treemacs)
-         (:map treemacs-mode-map
-               ("<mouse-1>" . treemacs-single-click-expand-action))))
-#+end_src
+
 * Shell
 #+begin_src elisp
   ;; Tramp
   (setq tramp-default-method "ssh"
         password-cache-expiry 36000)
 
-  ;; bash-completion
-  ;; (use-package bash-completion
-  ;;   :defer t
-  ;;   :when (eq system-type 'gnu/linux)
-  ;;   :init
-  ;;   (autoload 'bash-completion-dynamic-complete
-  ;;     "bash-completion"
-  ;;     "BASH completion hook")
-  ;;   (add-hook 'shell-dynamic-complete-functions
-  ;;             'bash-completion-dynamic-complete))
-
   ;; exec-path-from-shell
-  ;; (use-package exec-path-from-shell
-  ;;   :defer t
-  ;;   :when (eq system-type 'gnu/linux)
-  ;;   :init
-  ;;   (exec-path-from-shell-initialize))
+  (use-package exec-path-from-shell
+    :defer t
+    :when IS-LINUX
+    :init
+    (exec-path-from-shell-initialize))
 
   ;; vterm
   (use-package vterm
@@ -1103,129 +1086,70 @@ https://github.com/terlar/emacs-config?tab=readme-ov-file#frame
                 ((eq system-type 'windows-nt) '("eshell" "*eshell*" #'eshell))
                 (t '("terminal" "*terminal*"
                      (lambda () (term shell-pop-term-shell)))))))
-
-  (use-package journalctl-mode
-    :defer t)
 #+end_src
+
 * Programming Languages
 #+begin_src elisp
-;; Compilation
-(setq compilation-ask-about-save nil  ;Just save before compiling
-      compilation-always-kill t       ;kill old compile processes before new one
-      compilation-scroll-output 'first-error ; Automatically scroll to first error
-      )
+  (editorconfig-mode t)
 
-(editorconfig-mode t)
+  (use-package quickrun
+    :defer t)
+#+end_src
 
-(use-package indent-bars
-  :defer t)
+** prog-mode
+#+begin_src elisp
+  ;; prog-mode 编程模式设定
+  (defun my-prog-settings ()
+    "My owner my-prog-settings."
+    (hl-line-mode)               ;高亮当前行
+    (whitespace-mode)            ;显示空格
+    (display-line-numbers-mode)) ;显示行号
+  (add-hook 'prog-mode-hook 'my-prog-settings)
+#+end_src
 
-(use-package quickrun
-  :defer t)
+** Compilation
+#+begin_src elisp
+  (setq compilation-ask-about-save nil  ;Just save before compiling
+        compilation-always-kill t       ;kill old compile processes before new one
+        compilation-scroll-output 'first-error ; Automatically scroll to first error
+        )
+#+end_src
 
-(use-package reformatter
-  :defer t
-  :config
-  (reformatter-define nixfmt
-    :program "nixfmt"
-    )
-  ;; Experimental.
-  ;; (reformatter-define golint
-  ;;   :program "golint"
-  ;;   :stdin nil
-  ;;   :stdout nil
-  ;;   :args (list (buffer-file-name)))
-  )
+** conf-mode
+#+begin_src elisp
+  (use-package conf-mode
+    :mode
+    "/credentials$" "\\.accept_keywords$"
+    "\\lfrc$" "\\.keywords$" "\\.license$"
+    "\\.mask$" "\\.unmask$" "\\.use$")
+  (global-set-key [remap conf-space-keywords] #'project-find-file)
+#+end_src
 
-;; tree-sitter
-(use-package treesit-auto
+** tree-sitter
+#+begin_src elisp
+  (use-package treesit-auto
   :when (eq system-type 'gnu/linux)
   :config
   (global-treesit-auto-mode))
-
-(use-package list-environment
-  :commands (list-environment))
-
-;; conf-mode
-(use-package conf-mode
-  :mode
-  "/credentials$" "\\.accept_keywords$"
-  "\\lfrc$" "\\.keywords$" "\\.license$"
-  "\\.mask$" "\\.unmask$" "\\.use$")
-(global-set-key [remap conf-space-keywords] #'project-find-file)
-
-;; SQL
-(use-package sql-indent
-  :mode ("\\.sql\\'")
-  :interpreter (("sql" . sql-mode)))
-
-;; powershell
-(use-package powershell
-  :mode ("\\.ps1'"))
-
-;; docker
-(use-package dockerfile-mode
-  :mode ("Dockerfile\\'"))
-
-;; json
-(use-package json-mode
-  :mode ("\\.json'"))
-
-(use-package json-reformat
-  :commands json-reformat-region)
-
-;; toml
-(use-package toml-mode
-  :mode ("\\.toml'"))
-
-;; yaml
-(use-package yaml-mode
-  :mode ("\\.yml'" "\\.yaml'"))
-
-;; lua
-(use-package lua-mode
-  :mode ("\\.lua'"))
-
-(use-package license-templates
-  :defer t)
-
-;; just
-(use-package just-mode
-  :mode ("\\.just'" "justfile\\'"))
-
-;; (use-package go-mode
-;;   :commands go-mode
-;;   :config
-;;   (setq gofmt-command "goimports")
-;;   (add-hook 'before-save-hook 'gofmt-before-save))
-
-;;; Ruby
-;; (use-package ruby-mode
-;;   :defvar ruby-mode-map
-;;   :custom (ruby-insert-encoding-magic-comment . nil)
-;;   :hook (ruby-mode-hook . lsp)
-;;   :config
-;;   (dvorak-set-key-prog ruby-mode-map)
-;;   (use-package inf-ruby
-;;     :hook (ruby-mode-hook . inf-ruby-minor-mode)))
-
-(use-package macrostep
-  :bind (:map elisp-mode-map
-         ("C-c e" . macrostep-expand)
-         :map lisp-interaction-mode-map
-         ("C-c e" . macrostep-expand)))
-
 #+end_src
-** prog-mode
+
+** reformatter
 #+begin_src elisp
-;; prog-mode 编程模式设定
-(defun my-prog-settings ()
-  "My owner my-prog-settings."
-  (hl-line-mode)               ;高亮当前行
-  (whitespace-mode)            ;显示空格
-  (display-line-numbers-mode)) ;显示行号
-(add-hook 'prog-mode-hook 'my-prog-settings)
+  (use-package reformatter
+    :defer t
+    :config
+    (reformatter-define nixfmt
+      :program "nixfmt"
+      )
+    ;; Experimental.
+    ;; (reformatter-define golint
+    ;;   :program "golint"
+    ;;   :stdin nil
+    ;;   :stdout nil
+    ;;   :args (list (buffer-file-name)))
+    )
 #+end_src
+
 ** markdown
 #+begin_src elisp
   (use-package markdown-mode
@@ -1238,6 +1162,65 @@ https://github.com/terlar/emacs-config?tab=readme-ov-file#frame
   (use-package markdown-preview-mode
     :defer t)
 #+end_src
+
+** license-templates
+#+begin_src elisp
+  (use-package license-templates
+    :defer t)
+#+end_src
+
+** json
+#+begin_src elisp
+  (use-package json-mode
+    :mode ("\\.json'"))
+
+  (use-package json-reformat
+    :commands json-reformat-region)
+#+end_src
+
+** yaml
+#+begin_src elisp
+  (use-package yaml-mode
+    :mode ("\\.yml'" "\\.yaml'"))
+#+end_src
+
+** toml
+#+begin_src elisp
+  (use-package toml-mode
+    :mode ("\\.toml'"))
+#+end_src
+
+** lua
+#+begin_src elisp
+  (use-package lua-mode
+    :mode ("\\.lua'"))
+#+end_src
+
+** sql
+#+begin_src elisp
+  (use-package sql-indent
+    :mode ("\\.sql\\'")
+    :interpreter (("sql" . sql-mode)))
+#+end_src
+
+** just
+#+begin_src elisp
+  (use-package just-mode
+    :mode ("\\.just'" "justfile\\'"))
+#+end_src
+
+** docker
+#+begin_src elisp
+  (use-package dockerfile-mode
+    :mode ("Dockerfile\\'"))
+#+end_src
+
+** powershell
+#+begin_src elisp
+  (use-package powershell
+    :mode ("\\.ps1'"))
+#+end_src
+
 ** python
 #+begin_src elisp
 (use-package python-mode
@@ -1257,6 +1240,16 @@ https://github.com/terlar/emacs-config?tab=readme-ov-file#frame
 ;;                           (lsp))))
                                         ; or lsp-deferred
 #+end_src
+
+** go
+#+begin_src elisp
+  (use-package go-mode
+    :commands go-mode
+    :config
+    (setq gofmt-command "goimports")
+    (add-hook 'before-save-hook 'gofmt-before-save))
+#+end_src
+
 ** rust
 #+begin_src elisp
 (use-package rustic
@@ -1272,37 +1265,51 @@ https://github.com/terlar/emacs-config?tab=readme-ov-file#frame
 ;;   :defer t
 ;;   :hook (rust-mode . cargo-minor-mode))
 #+end_src
+
+** ruby
+#+begin_src elisp
+  ;; (use-package ruby-mode
+  ;;   :defvar ruby-mode-map
+  ;;   :custom (ruby-insert-encoding-magic-comment . nil)
+  ;;   :hook (ruby-mode-hook . lsp)
+  ;;   :config
+  ;;   (dvorak-set-key-prog ruby-mode-map)
+  ;;   (use-package inf-ruby
+  ;;     :hook (ruby-mode-hook . inf-ruby-minor-mode)))
+#+end_src
+
 ** elisp
 #+begin_src elisp
-(use-package elisp-mode
-  :ensure nil
-  :hook (elisp-mode . (lambda () (setq mode-name "ξ ")))
-  ;; :bind (:map elisp-mode-map
-  ;;             ("C-c e" . fc-eval-and-replace))
-  )
+  (use-package elisp-mode
+    :ensure nil
+    :hook (elisp-mode . (lambda () (setq mode-name "ξ ")))
+    ;; :bind (:map elisp-mode-map
+    ;;             ("C-c e" . fc-eval-and-replace))
+    )
 
-(use-package slime
-  :commands (slime))
+  (use-package slime
+    :commands (slime))
+
+  (use-package macrostep
+    :bind (:map elisp-mode-map
+                ("C-c e" . macrostep-expand)
+                :map lisp-interaction-mode-map
+                ("C-c e" . macrostep-expand)))
 #+end_src
+
 ** nix
 #+begin_src elisp
-(use-package direnv
-  :after lsp
-  :delight 'direnv-mode
-  :config
-  ;; Ensures that external dependencies are available before they are called.
-  (add-hook 'prog-mode-hook #'direnv--maybe-update-environment)
-  ;; XXX cargo culted.  Investigate
-  (add-to-list 'direnv-non-file-modes 'vterm-mode)
-  (setq direnv-always-show-summary nil)
-  (direnv-mode 1))
+  (use-package direnv
+    :config
+    (direnv-mode))
 
-(use-package nix-mode
-  :mode ("\\.nix'"))
+  (use-package nix-mode
+    :mode ("\\.nix'"))
 
-(use-package nixpkgs-fmt
-  :defer t)
+  (use-package nixpkgs-fmt
+    :defer t)
 #+end_src
+
 * LSP
 #+begin_src elisp
 ;; flycheck
@@ -1441,8 +1448,15 @@ https://github.com/terlar/emacs-config?tab=readme-ov-file#frame
 
 
 #+end_src
+
 * Org Mode
 #+begin_src elisp
+  (bind-keys :prefix-map org-map
+             :prefix "C-c o"
+             ("l" . org-store-link)
+             ("a" . org-agenda)
+             ("c" . org-capture)
+             ("b" . org-switchb))
 
   ;; Org-table font
   (custom-set-faces
@@ -1471,94 +1485,37 @@ https://github.com/terlar/emacs-config?tab=readme-ov-file#frame
                                  "* Event: %?\n\n  %i\n\n"
                                  :empty-lines 1)))
 
-
-
-  (bind-keys :prefix-map org-map
-             :prefix "C-c o"
-             ("l" . org-store-link)
-             ("a" . org-agenda)
-             ("c" . org-capture)
-             ("b" . org-switchb))
-
-  ;; org-babel-map
-  (with-eval-after-load 'org
-    (define-key org-babel-map (kbd "C-=") 'org-babel-mark-block))
-
   ;; <s TAB: The old way, C-c C-, New way.
   ;; (require 'org-tempo) ;; Startup blame
+#+end_src
 
-  ;; babel
-  ;; (org-babel-do-load-languages 'org-babel-load-languages
-  ;;                              '((elisp . t)
-  ;;                                ;(C . t)
-  ;;                                ;(ditaa . t)
-  ;;                                (dot . t)
-  ;;                                ;(js . t)
-  ;;                                ;(css . t)
-  ;;                                ;(latex . t)
-  ;;                                ;(perl . t)
-  ;;                                ;(python . t)
-  ;;                                ;(ruby . t)
-  ;;                                ; (rust . t)
-  ;;                                ; (sh . t)
-  ;;                                (shell . t);
-  ;;                                ;(plantuml . t)
-  ;;                                ;(R . t)
-  ;;                                ;(clojure . t)
-  ;;                                ))
-
-
+** org-modern
+#+begin_src elisp
   (use-package org-modern
     :after org
     :hook (org-mode . org-modern-mode))
-
-  ;; (use-package org-roam
-  ;;   :custom
-  ;;   (org-roam-directory (file-truename "~/Documents/org/"))
-  ;;   :bind (("C-c n l" . org-roam-buffer-toggle)
-  ;;          ("C-c n f" . org-roam-node-find)
-  ;;          ("C-c n g" . org-roam-graph)
-  ;;          ("C-c n i" . org-roam-node-insert)
-  ;;          ("C-c n c" . org-roam-capture)
-  ;;          ;; Dailies
-  ;;          ("C-c n j" . org-roam-dailies-capture-today))
-  ;;   :config
-  ;;   ;; If you're using a vertical completion framework, you might want a more informative completion interface
-  ;;   (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
-  ;;   (org-roam-db-autosync-mode)
-  ;;   ;; If using org-roam-protocol
-  ;;   (require 'org-roam-protocol))
-
-
-  ;; (leaf org
-  ;;   :leaf-defer t
-  ;;   :bind (("C-c c" . org-capture)
-  ;;          ("C-c a" . org-agenda)
-  ;;          (:org-mode-map
-  ;;           ("C-c C-;" . org-edit-special))
-  ;;          (:org-src-mode-map
-  ;;           ("C-c C-;" . org-edit-src-exit)))
-  ;;   :mode ("\\.org$'" . org-mode)
-  ;;   ;; :hook  (org-mode . (lambda ()
-  ;;   ;;                      (set (make-local-variable 'system-time-locale) "C")))
-  ;;   :config
-  ;;   (setq org-directory "~/src/github.com/grugrut/PersonalProject/")
-  ;;   :custom
-  ;;   ;; TODO状態の設定
-  ;;   (org-todo-keywords . '((sequence "TODO(t)" "IN PROGRESS(i)" "|" "DONE(d)")
-  ;;                          (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" "MEETING")))
-  ;;   (org-todo-keyword-faces . '(("TODO" :foreground "red" :weight bold)
-  ;;                               ("STARTED" :foreground "cornflower blue" :weight bold)
-  ;;                               ("DONE" :foreground "green" :weight bold)
-  ;;                               ("WAITING" :foreground "orange" :weight bold)
-  ;;                               ("HOLD" :foreground "magenta" :weight bold)
-  ;;                               ("CANCELLED" :foreground "green" :weight bold)
-  ;;                               ("MEETING" :foreground "gren" :weight bold)))
-  ;;   (org-log-done . 'time)
-  ;;   (org-clock-persist . t)
-  ;;   (org-clock-out-when-done . t)
-  ;;   )
 #+end_src
+
+** org-roam
+#+begin_src elispxx
+  (use-package org-roam
+    :custom
+    (org-roam-directory (file-truename "~/Documents/org/"))
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+           ("C-c n f" . org-roam-node-find)
+           ("C-c n g" . org-roam-graph)
+           ("C-c n i" . org-roam-node-insert)
+           ("C-c n c" . org-roam-capture)
+           ;; Dailies
+           ("C-c n j" . org-roam-dailies-capture-today))
+    :config
+    ;; If you're using a vertical completion framework, you might want a more informative completion interface
+    (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+    (org-roam-db-autosync-mode)
+    ;; If using org-roam-protocol
+    (require 'org-roam-protocol))
+#+end_src
+
 * Web
 #+begin_src elispxx
 (use-package css-mode
@@ -1671,6 +1628,7 @@ https://github.com/terlar/emacs-config?tab=readme-ov-file#frame
 ;;       :defines company-backends
 ;;       :init (add-to-list 'company-backends 'company-restclient))))
 #+end_src
+
 * C
 #+begin_src elisp
 (use-package cc-mode
@@ -1774,5 +1732,102 @@ https://github.com/terlar/emacs-config?tab=readme-ov-file#frame
 
 ;; (leaf groovy-mode :ensure t)
 #+end_src
+
+* Functions
+** make-parent-directory
+#+begin_src elisp
+  ;;;###autoload
+  (defun make-parent-directory ()
+    "Make sure the directory of `buffer-file-name' exists."
+    (make-directory (file-name-directory buffer-file-name) t))
+  (add-hook 'find-file-not-found-functions #'make-parent-directory)
+#+end_src
+
+** align
+#+begin_src elisp
+  ;;;###autoload
+  (defun zendo/align-whitespace (start end)
+    "Align columns by whitespace"
+    (interactive "r")
+    (align-regexp start end
+                  "\\(\\s-*\\)\\s-" 1 0 t))
+
+  (defun zendo/align-& (start end)
+    "Align columns by ampersand"
+    (interactive "r")
+    (align-regexp start end
+                  "\\(\\s-*\\)&" 1 1 t))
+#+end_src
+
+** space to newline
+#+begin_src elisp
+  ;;;###autoload
+  (defun zendo/space-to-newline ()
+    "Replace space sequence to a newline char.
+  Works on current block or selection.
+
+  URL `http://ergoemacs.org/emacs/emacs_space_to_newline.html'
+  Version 2017-08-19"
+    (interactive)
+    (let* ( $p1 $p2 )
+      (if (use-region-p)
+          (progn
+            (setq $p1 (region-beginning))
+            (setq $p2 (region-end)))
+        (save-excursion
+          (if (re-search-backward "\n[ \t]*\n" nil "move")
+              (progn (re-search-forward "\n[ \t]*\n")
+                     (setq $p1 (point)))
+            (setq $p1 (point)))
+          (re-search-forward "\n[ \t]*\n" nil "move")
+          (skip-chars-backward " \t\n" )
+          (setq $p2 (point))))
+      (save-excursion
+        (save-restriction
+          (narrow-to-region $p1 $p2)
+          (goto-char (point-min))
+          (while (re-search-forward " +" nil t)
+            (replace-match "\n" ))))))
+#+end_src
+
+** screenshot
+https://github.com/terlar/emacs-config?tab=readme-ov-file#frame
+
+#+begin_src elisp
+  ;;;###autoload
+  (defun screenshot (type)
+    "Save a screenshot of the current frame as an image in TYPE format.
+  Saves to a temp file and puts the filename in the kill ring."
+    (let* ((ext (concat "." (symbol-name type)))
+           (filename (make-temp-file "Emacs-" nil ext))
+           (data (x-export-frames nil type)))
+      (with-temp-file filename
+        (insert data))
+      (kill-new filename)
+      (message filename)))
+
+  (defun screenshot-svg ()
+    "Save a screenshot of the current frame as an SVG image.
+  Saves to a temp file and puts the filename in the kill ring."
+    (interactive)
+    (screenshot 'svg))
+
+  (defun screenshot-png ()
+    "Save a screenshot of the current frame as an PNG image.
+  Saves to a temp file and puts the filename in the kill ring."
+    (interactive)
+    (screenshot 'png))
+#+end_src
+
+** insert-timestamp
+#+begin_src elisp
+  ;;;; timestamp
+  (defun insert-timestamp ()
+    "Insert string for the current time."
+    (interactive)
+    (insert (format-time-string "[%02y-%02m-%02d %02H:%02M:%02S] ")))
+#+end_src
+
 * Links
+https://github.com/jamescherti/minimal-emacs.d
 https://orgmode.org/manual/Working-with-Source-Code.html

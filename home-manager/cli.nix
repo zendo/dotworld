@@ -198,6 +198,7 @@
       enable = true;
     };
 
+    # echo "use flake" >> .envrc && direnv allow
     direnv = {
       enable = true;
       nix-direnv.enable = true;
