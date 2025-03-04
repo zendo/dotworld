@@ -21,7 +21,6 @@
   environment.systemPackages =
     with pkgs;
     [
-      merkuro
       yakuake
       gparted
       kcolorchooser

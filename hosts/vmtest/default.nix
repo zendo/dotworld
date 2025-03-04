@@ -11,8 +11,8 @@
     "${inputs.nixpkgs}/nixos/modules/virtualisation/qemu-vm.nix"
     # "${inputs.pkgsReview}/nixos/modules/services/desktops/pipewire/pipewire.nix"
 
-    # self.nixosModules.gnome
-    self.nixosModules.kde
+    self.nixosModules.gnome
+    # self.nixosModules.kde
     # self.nixosModules.cosmic
     # self.nixosModules.sway
     # self.nixosModules.niri
@@ -30,13 +30,6 @@
 
   programs = {
     # nix-ld.enable = true;
-
-    clash-client = {
-      enable = true;
-      tunMode = true;
-      autoStart = true;
-      package = pkgs.mihomo-party;
-    };
   };
 
   environment.systemPackages = with pkgs; [
@@ -88,6 +81,8 @@
       ];
     };
   };
+
+  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 
   users.users = {
     # passwd: root
