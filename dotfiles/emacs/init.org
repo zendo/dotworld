@@ -140,20 +140,6 @@
                         (font-spec :family "Microsoft Yahei" :size 24))))
 #+end_src
 
-* emacsclient
-#+BEGIN_SRC elisp
-  ;; server
-  (unless (and (fboundp 'server-running-p)
-               (server-running-p))
-    (server-start))
-
-  ;; kill emacsclient message
-  (add-hook 'server-after-make-frame-hook
-            (lambda ()
-              (setq inhibit-message t)
-              (run-with-idle-timer 0 nil (lambda () (setq inhibit-message nil)))))
-#+END_SRC
-
 * Interface
 ** Themes
 #+begin_src elisp
@@ -335,15 +321,15 @@
 
 * Editing
 #+begin_src elisp
-  (show-paren-mode 1)                         ;括号匹配 parens
-  (electric-pair-mode t)                      ;自动补全括号
   (delete-selection-mode t)                   ;overwrite selected text
   ;; (global-visual-line-mode 1)                 ;折叠 word wrap
-  (global-prettify-symbols-mode 1)            ;Show lambda as λ.
 
   (setq-default tab-width 4
                 indent-tabs-mode nil) ;indent with spaces, never with TABs
 
+  (show-paren-mode 1)                         ;括号匹配 parens
+  (electric-pair-mode t)                      ;自动补全括号
+  (global-prettify-symbols-mode 1)            ;Show lambda as λ.
   (setq sentence-end-double-space nil ;Sentences should end in one space
         sentence-end "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*" ;识别中文标点符号
         require-final-newline t)
@@ -1060,17 +1046,19 @@ Completion style for matching regexps in any order
   )
 #+end_src
 
-* Git
+* Version Control
+** Magit
 #+begin_src elisp
-  ;; Magit
   (use-package magit
     :bind
     (("C-c g" . magit-status)
      ("s-g" . magit-status))
     :custom
     (magit-format-file-function #'magit-format-file-nerd-icons))
+#+end_src
 
-  ;; git-gutter
+** Git-gutter
+#+begin_src elisp
   (use-package git-gutter
     :diminish (git-gutter-mode)
     :custom
@@ -1083,36 +1071,66 @@ Completion style for matching regexps in any order
     (git-gutter:deleted  ((t (:background "#ff79c6"))))
     :config
     (global-git-gutter-mode 1))
+#+end_src
 
+** Forge
+#+begin_src elisp
   (use-package forge
     :after magit)
+#+end_src
 
+** Git-timemachine
+#+begin_src elisp
   (use-package git-timemachine
     :bind (:map vc-prefix-map
                 ("t" . git-timemachine)))
+#+end_src
 
+** Browse-at-remote
+#+begin_src elisp
   (use-package browse-at-remote
     :bind (:map vc-prefix-map
                 ("o" . browse-at-remote)))
+#+end_src
 
+** Blamer
+#+begin_src elisp
   (use-package blamer
     :commands (blamer-mode))
 #+end_src
 
+* emacsclient
+#+BEGIN_SRC elisp
+  ;; server
+  (unless (and (fboundp 'server-running-p)
+               (server-running-p))
+    (server-start))
+
+  ;; kill emacsclient message
+  (add-hook 'server-after-make-frame-hook
+            (lambda ()
+              (setq inhibit-message t)
+              (run-with-idle-timer 0 nil (lambda () (setq inhibit-message nil)))))
+#+END_SRC
+
 * Shell
+** tramp
 #+begin_src elisp
-  ;; Tramp
   (setq tramp-default-method "ssh"
         password-cache-expiry 36000)
+#+end_src
 
-  ;; exec-path-from-shell
+** exec-path-from-shell
+#+begin_src elisp
   (use-package exec-path-from-shell
     :defer t
     :when IS-LINUX
     :init
     (exec-path-from-shell-initialize))
+#+end_src
 
-  ;; vterm
+** vterm
+#+begin_src elisp
   (use-package vterm
     :defer t
     :when (eq system-type 'gnu/linux)
@@ -1120,8 +1138,10 @@ Completion style for matching regexps in any order
     (setq vterm-shell "zsh")
     :bind (:map vterm-mode-map
                 ("<f2>" . shell-pop)))
+#+end_src
 
-  ;; shell-pop
+** shell-pop
+#+begin_src elisp
   (use-package shell-pop
     :bind (("<f2>" . shell-pop))
     :init

@@ -11,11 +11,11 @@
     "${inputs.nixpkgs}/nixos/modules/virtualisation/qemu-vm.nix"
     # "${inputs.pkgsReview}/nixos/modules/services/desktops/pipewire/pipewire.nix"
 
-    self.nixosModules.gnome
+    # self.nixosModules.gnome
     # self.nixosModules.kde
     # self.nixosModules.cosmic
     # self.nixosModules.sway
-    # self.nixosModules.niri
+    self.nixosModules.niri
     # self.nixosModules.hyprland
   ];
 
@@ -78,6 +78,9 @@
         "-device hda-duplex,audiodev=snd0"
         # Graphical for sway
         # "-vga qxl"
+        # Wayland in QEMU
+        "-device virtio-vga-gl"
+        "-display gtk,gl=on"
       ];
     };
   };

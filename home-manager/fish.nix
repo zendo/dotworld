@@ -1,8 +1,8 @@
 { ... }:
 {
   programs.fish = {
-    enable = false;
-    generateCompletions = false;
+    # enable = true;
+    generateCompletions = true;
     interactiveShellInit = ''
       # Disable the greeting message.
       set fish_greeting
