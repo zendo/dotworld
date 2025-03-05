@@ -44,6 +44,7 @@ in
         "gfx.text.subpixel-position.force-enabled" = true;
         "gfx.webrender.quality.force-subpixel-aa-where-possible" = true;
       };
+      search.enable = false;
       search.engines = {
         Google.metaData.alias = "g";
         GitHub = {
