@@ -1837,6 +1837,24 @@ M-backspace 删除而非剪切
 (global-set-key [remap backward-kill-word] #'backward-delete-word)
 #+end_src
 
+* MISC
+** world-colock
+C-h f *format-time-string* for more details.
+
+#+begin_src emacs-lisp
+(setq world-clock-list
+      '(
+        ("America/Los_Angeles" "旧金山")
+        ("America/New_York" "纽约")
+        ("Europe/London" "伦敦")
+        ("Europe/Paris" "巴黎")
+        ("Asia/Calcutta" "班加罗尔")
+        ("Asia/Shanghai" "上海")
+        ("Asia/Tokyo" "东京")
+        ))
+(setq world-clock-time-format "  %a %d %b %R %Z")
+#+end_src
+
 * Links
 https://github.com/jamescherti/minimal-emacs.d startup performance
 https://github.com/rougier/dotemacs Litterate configuration org
