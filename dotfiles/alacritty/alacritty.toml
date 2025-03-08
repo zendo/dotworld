@@ -1,0 +1,45 @@
+[general]
+import = ["~/.config/alacritty/tomorrow_night_bright.yaml"]
+
+live_config_reload = false
+
+[env]
+TERM = "xterm-256color"
+
+[terminal]
+shell = { program = "zsh", args = ["-l"] }
+
+[window]
+dimensions = { columns = 80, lines = 25 }
+padding = { x = 6, y = 6 }
+opacity = 0.9
+
+[font]
+size = 11
+[font.normal]
+family = "JetBrains Mono"
+
+[mouse]
+bindings = [{ mouse = "Middle", action = "PasteSelection" }]
+
+[keyboard]
+bindings = [
+  { key = "C", mods = "Control|Shift", action = "Copy" },
+  { key = "V", mods = "Control|Shift", action = "Paste" },
+
+  # emacs
+  { key = "W", mods = "Control", action = "Copy" },
+  { key = "W", mods = "Alt", action = "Copy" },
+  { key = "Y", mods = "Alt", action = "Paste" },
+  { key = "Y", mods = "Control", action = "Paste" },
+  # { key = "G", mods = "Control", chars = "\\x03" }, # TODO
+
+  { key = "V", mods = "Control", action = "ScrollHalfPageDown" },
+  { key = "V", mods = "Alt", action = "ScrollHalfPageUp" },
+
+  { key = "Q", mods = "Control", action = "Quit" },
+  { key = "W", mods = "Command", action = "Quit" },
+
+  { key = "N", mods = "Control|Shift", action = "CreateNewWindow" },
+  { key = "F11", action = "ToggleFullscreen" },
+]

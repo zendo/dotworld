@@ -1,0 +1,29 @@
+# Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames
+# --restrict-filenames
+
+# Do not overwrite existing output files
+--no-overwrites
+
+# Download only the video, if the URL refers to a video AND a playlist
+--no-playlist
+
+# Download all the available subtitles
+# --all-subs
+# # merge subtitles into video file
+# --embed-subs
+# # Embed metadata to the video file. Also adds chapters to file
+# --embed-metadata
+
+# To make sure all audio-related.
+# --extract-audio
+# --format bestaudio
+# --audio-format opus
+
+--format "bestvideo+bestaudio"
+
+--output '%(track_number,playlist_autonumber)d-%(track,title)s.%(ext)s'
+--download-archive archive
+
+# Add all sorts of metadata.
+--embed-thumbnail
+--add-metadata

@@ -1,0 +1,47 @@
+# onedark everforest_dark
+theme = "everforest_dark"
+
+[editor]
+completion-trigger-len = 1
+# file-picker.hidden = true
+cursorline = true # highlight current line
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "block"
+select = "block"
+
+[editor.file-picker]
+hidden = false
+
+[editor.auto-pairs]
+'(' = ')'
+'{' = '}'
+'[' = ']'
+'"' = '"'
+'`' = '`'
+'<' = '>'
+
+[editor.statusline]
+left = ["mode", "file-name", "file-encoding"]
+right = [
+  "spinner",
+  "diagnostics",
+  "workspace-diagnostics",
+  "selections",
+  "position",
+  "position-percentage",
+  "file-type",
+]
+
+[keys.normal]
+C-s = ":w"
+g = { a = "code_action" }
+
+[keys.normal.space]
+space = "file_picker"
+q = ":q"
+
+[keys.insert]
+"A-x" = "normal_mode"
+"C-space" = "completion"

@@ -1,0 +1,29 @@
+# ghostty +show-config --default --docs
+
+command = zsh --login
+shell-integration-features = no-cursor,sudo
+cursor-style = block
+background-opacity = 0.94
+theme = Tomorrow Night
+
+# font-family = BerkeleyMono Nerd Font
+font-size = 11
+
+window-height = 28
+window-width = 90
+
+## KEYBINDINGS
+keybind = ctrl+enter=unbind
+
+keybind = f11=toggle_fullscreen
+
+# copy-on-select = clipboard
+keybind = alt+w=copy_to_clipboard
+keybind = ctrl+y=paste_from_clipboard
+
+# split
+keybind = ctrl+x>2=new_split:down
+keybind = ctrl+x>3=new_split:right
+keybind = ctrl+x>0=close_window
+keybind = ctrl+shift+q=close_window
+keybind = ctrl+shift+backspace=close_window

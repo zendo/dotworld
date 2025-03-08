@@ -1,0 +1,24 @@
+patch:
+  # 方案列表
+  schema_list:
+    # - schema: "rime_frost"
+    - schema: "rime_ice"
+    # - schema: "aurora_pinyin"
+    # - schema: "luna_pinyin_simp"
+    # - schema: "clover"
+    # - schema: "easy_en"
+
+  # 中英文切换
+  ascii_composer:
+    switch_key:
+      Shift_L: commit_code # commit_code | commit_text | inline_ascii | clear | noop
+      Shift_R: commit_code
+      # Shift_R: inline_ascii  # 按下右 Shift 键会临时切换到西文模式
+      # Caps_Lock: commit_code # 英文模式下按大写反而没有效果
+
+  # 候选词数
+  menu/page_size: 6
+
+  # 呼出菜单键
+  switcher/hotkeys:
+    - "Control+F4"

@@ -1,0 +1,164 @@
+#+STARTUP: show2levels indent hidestars
+
+* Bash Basic
+https://github.com/skywind3000/awesome-cheatsheets/blob/master/languages/bash.sh
+
+#+begin_src bash
+  cat < input > output
+
+  cat << EOF >> /etc/fstab
+  write some words
+  EOF
+#+end_src
+
+** 符号
+; 先执行命令1，然后执行命令2
+&& 任务1成功后执行命令2，不成功不执行
+|| 任务1不成功则执行命令2
+& 命令行后加 & 将转入后台运行
+> 写入，覆盖写入（类似命令 tee）
+>> 追加写入
+\ 转义
+# 注释
+=$(!!) 使用上个命令的输出=
+
+tee 读取标准输入，传送标准输出
+xargs
+
+$0: 脚本本身文件名称
+$1: 命令行第一个参数，$2为第二个，以此类推
+$*: 所有参数列表
+$@: 所有参数列表
+$#: 参数个数
+$$: 脚本运行时的PID
+$?: 脚本退出码
+∗与@的区别
+当命令行为test.sh 1 2 3
+"$*“表示"1 2 3”
+"$@“表示"1” “2” “3”
+
+(command) 在子 shell 中临时处理一些命令
+-e exists
+-d directory
+-f file
+-s not empty
+-x executable
+-r readable
+-w writable
+-O owned by current user
+-G group same as current user
+file1 -nt file2  is 1 newer than 2
+-ot older
+-eq equal
+-gt greater
+-ge greater or equal
+-le less or equal
+-lt less
+-ne not equal
+
+** cp
+cp -u --update 仅复制不存在和不一样的文件
+cp filename{,.bak} 快速建立备份文件
+cp -avr ~/.config ~/onedriver  # a=保留属性 v=verbose output
+
+** find
+find ~ | wc -l 主目录并计数
+find ~ -type d | wc -l 查找目录并计数
+find ~ -type f -name "*.jpg" -size +1M 查找名字和查找容量大于1M
+
+find . -name '*.plymouth' -exec sed -i -e 's/usr\/share/etc/g' {} \;
+find . -name '*.plymouth' -print0 | xargs -0 sed -i 's/usr\/share/etc/g'
+find . -type f  -name '*.plymouth' | xargs sed -i "s@usr/share@etc@g"
+
+** time format
+#+begin_src config
+%a . . . . Abbreviated weekday name (Mon, Tue, etc.)
+%A . . . . Full weekday name (Monday, Tuesday, etc.)
+%b . . . . Abbreviated month name (Jan, Feb, etc.)
+%B . . . . Full month name (January, February, etc.)
+%d. . . . . Day of month
+%j . . . . . Julian day of year
+%m . . . . Month number (01-12)
+%y. . . . . Year in century
+%Y . . . . Year with 4 digits
+-------------------------------------------------------------------------------
+%H . . . . Hour (00-23)
+%I . . . . . Hour (00-12)
+%M . . . . Minutes (00-59)
+%S . . . . . Seconds(00-59)
+%p . . . . . PM or AM
+-------------------------------------------------------------------------------
+%D . . . . Date as %m/%d/%y
+%r. . . . . Time as %I:%M:%S %p
+%R . . . . Time as %H:%M
+%T . . . . Time as %H:%M:%S
+%Z . . . . Time Zone Name 
+#+end_src
+
+* Bash OneLiner
+https://github.com/onceupon/Bash-Oneliner
+
+#+begin_src bash
+  echo $PATH | tr ':' '\n'  #格式化PATH输出
+  mount | column -t
+  shopt -s extglob && rm -i !(*.mkv)   # rm all except :bash
+  setopt extended_glob && rm -- ^*.mkv # rm all except :zsh
+#+end_src
+
+** curl
+#+begin_src bash
+  curl --silent https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest | jq -r 'first(.assets[].browser_download_url | select(endswith(".tar.gz")))'
+
+  curl -s https://api.github.com/repos/fkxxyz/rime-cloverpinyin/releases/latest | grep "browser_download_url.*build.*" | cut -d '"' -f 4 | xargs -n 1 curl -LJO
+
+  curl -s https://api.github.com/repos/magiclen/m-prober/releases/latest | sed -r -n 's/.*"browser_download_url": *"(.*\/mprober_'$(uname -m)')".*/\1/p' | wget -i -
+
+  curl -s https://api.github.com/repos/jgm/pandoc/releases/latest \
+      | grep "browser_download_url.*deb" \
+      | cut -d : -f 2,3 \
+      | tr -d \" \
+      | wget -qi -
+#+end_src
+
+* Regex 正则表达式
+
+https://deerchao.cn/tutorials/regex/regex.htm
+
+. 匹配一个字符
+? 匹配一个字符
+:* 匹配多个字符
+
+sally sells seashells
+by the seashore
+
+^by 匹配行首，某行以by开头
+seashore$ 匹配行尾，某行以seashores结尾
+b. 匹配任意b开头的单词，\.$ 点号结尾
+
+d[iou]g 匹配中间有iou的d_g单词
+d[^i]g 匹配任意d_g单词，但就是不包括i
+d[a-c]g 匹配a-c范围的d_g单词
+
+* tar
+#+begin_src bash
+  tar cvf mytarfile.tar mycoolfile1 mycoolfile2 创建tar包（v显示操作过程，可省略）
+  tar -xvf ×.tar
+  tar -xzvf *.tar.gz = tar -czvf 压缩
+  tar -xjvf *.tar.bz2 = tar -cjvf 压缩
+  tar -xvf *.tar.xz = tar -cvf 压缩
+#+end_src
+
+** 备份整个系统
+#+begin_src bash
+  tar -cvpzf backup.tar.gz --exclude=/backup.tar.gz --exclude=/proc --exclude=/tmp --exclude=/mnt --exclude=/dev --exclude=/sys --exclude=/run --exclude=/boot/efi --exclude=/home/*/.cache --exclude=/home/*/.local/share/Trash /
+  sudo tar -xvpzf /path/to/backup.tar.gz -C /mnt --numeric-owner
+#+end_src
+https://www.fsarchiver.org/quickstart/
+
+* sed
+#+begin_src bash
+sed 's/origin/fininal/g' xxx.txt    # s替换 g全局 原本/修改后
+sudo sed -i 's/$/ fedora/' /etc/hosts  # 每行末尾添加
+#+end_src>
+https://github.com/adrianscheff/useful-sed
+

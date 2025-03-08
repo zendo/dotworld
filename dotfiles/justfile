@@ -1,0 +1,47 @@
+set shell := ["bash", "-uc"]
+
+user := `loginctl --no-legend list-users | awk '{print $2;}'`
+home_dir := env_var('HOME')
+
+_default:
+    @just --choose
+
+backup-data:
+    #!/usr/bin/env bash
+    rsync -avhpL ~/.ssh ~/Documents/homeBackups/
+    rsync -avhpL ~/.config/sops ~/Documents/homeBackups/
+
+    rsync -avhpL ~/.mozilla ~/Documents/homeBackups/
+    # rsync -avhpL ~/.config/chromium ~/Documents/homeBackups/
+    # rsync -avhpL ~/.config/google-chrome ~/Documents/homeBackups/
+    # rsync -avhpL ~/.config/fcitx5/conf ~/Documents/homeBackups/
+
+
+ln-ibus-rime:
+    #! /usr/bin/env bash
+    if [[ ! -e "$HOME/.config/ibus/rime" ]]; then
+        mkdir "$HOME/.config/ibus/rime"
+    fi
+
+    ln -sfv "$(pwd)"/rime/default.custom.yaml "$HOME"/.config/ibus/rime/default.custom.yaml
+    ln -sfv "$(pwd)"/rime/ibus_rime.custom.yaml "$HOME"/.config/ibus/rime/ibus_rime.custom.yaml
+
+    # rime-ice
+    ln -sfv "$(pwd)"/rime/rime_ice.custom.yaml "$HOME"/.config/ibus/rime/rime_ice.custom.yaml
+
+ln-fcitx-conf-rime:
+    #! /usr/bin/env bash
+    if [[ ! -e "$HOME/.local/share/fcitx5/rime" ]]; then
+        mkdir "$HOME/.local/share/fcitx5/rime"
+    fi
+
+    ln -sfv "$(pwd)"/rime/default.custom.yaml "$HOME"/.local/share/fcitx5/rime/default.custom.yaml
+
+    # rime-ice
+    ln -sfv "$(pwd)"/rime/rime_ice.custom.yaml "$HOME"/.local/share/fcitx5/rime/rime_ice.custom.yaml
+
+    # fcitx5-conf
+    cp "$(pwd)"/fcitx5/classicui.conf "$HOME"/.config/fcitx5/conf/classicui.conf
+    cp "$(pwd)"/fcitx5/clipboard.conf "$HOME"/.config/fcitx5/conf/clipboard.conf
+    cp "$(pwd)"/fcitx5/config "$HOME"/.config/fcitx5/config
+    cp "$(pwd)"/fcitx5/profile "$HOME"/.config/fcitx5/profile

@@ -1,0 +1,15 @@
+set windows-shell := ["powershell.exe", "-c"]
+
+default:
+    @just --choose
+
+betterfox:
+    iwr "https://raw.githubusercontent.com/yokoffing/Betterfox/main/user.js" -o "user.js" ; \
+    iwr "https://raw.githubusercontent.com/zendo/nsworld/refs/heads/main/dotfiles/Windows/ff-pref.js" | \
+    add-content user.js
+
+emacs-mklink:
+    Start-Process -Verb RunAs Invoke-Item -FilePath ".\mklink_admin.cmd"
+
+emacs-ob-tangle:
+    emacs --batch -l org --eval '(setq vc-follow-symlinks nil)' --eval '(org-babel-tangle-file \"~/.emacs.d/all-emacs.org\")'

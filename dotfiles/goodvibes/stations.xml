@@ -1,0 +1,78 @@
+<Stations>
+  
+  <Station>
+    <uri>http://asiafm.hk:8000/asiahd</uri>
+    <name>AsiaFM 高清音乐台</name>
+  </Station>
+  
+  <Station>
+    <uri>https://stream.rcs.revma.com/ks4vsmg3qtzuv</uri>
+    <name>中廣音樂網</name>
+  </Station>
+
+  <Station>
+    <uri>http://lhttp.qingting.fm/live/20207761/64k.mp3</uri>
+    <name>80后音悦台</name>
+  </Station>
+  
+  <Station>
+    <uri>http://lhttp.qingting.fm/live/4804/64k.mp3</uri>
+    <name>怀集音乐之声</name>
+  </Station>
+  
+  <Station>
+    <uri>http://lhttp.qingting.fm/live/5022107/64k.mp3</uri>
+    <name>动听音乐网络电台</name>
+  </Station>
+  
+  <Station>
+    <uri>http://ls.qingting.fm/live/3412131.m3u8?bitrate=64</uri>
+    <name>华语金曲500首</name>
+  </Station>
+  
+  <Station>
+    <uri>https://lhttp.qtfm.cn/live/5022308/64k.mp3</uri>
+    <name>500首华语经典</name>
+  </Station>
+
+  <Station>
+    <uri>https://stream.ginnet.cloud/live0130lo-yfyo/_definst_/fm/playlist.m3u8</uri>
+    <name>臺北電台</name>
+  </Station>
+  
+  <Station>
+    <uri>http://lizeradio.com:8080/;&amp;type=mp3</uri>
+    <name>栗子的輕音樂</name>
+  </Station>
+
+  <Station>
+    <uri>https://play.streamafrica.net/lofiradio</uri>
+    <name>Lofi Radio</name>
+  </Station>
+
+  <Station>
+    <uri>https://live.hunter.fm/lofi_high</uri>
+    <name>Hunter FM - LOFI</name>
+  </Station>
+  
+  <Station>
+    <uri>http://stream-uk1.radioparadise.com/aac-320</uri>
+    <name>Radio Paradise</name>
+  </Station>
+  
+  <Station>
+    <uri>http://lin3.ash.fast-serv.com:6026/stream_96</uri>
+    <name>Rockabilly</name>
+  </Station>
+  
+  <Station>
+    <uri>http://stream.mangoradio.de</uri>
+    <name>MangoRadio</name>
+  </Station>
+  
+  <Station>
+    <uri>http://channels.dinamo.fm/deep-mp3</uri>
+    <name>deep</name>
+  </Station>
+  
+  <Stations>

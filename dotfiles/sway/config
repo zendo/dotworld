@@ -1,0 +1,263 @@
+# -------===[ Variables ]===-------
+set {
+  $mod Mod4
+  
+  $term kitty
+  $float_term foot
+  $editor emacs
+  $browser firefox
+  $filemanager thunar
+  $note io.posidon.Paper
+  $calendar qalculate-gtk
+  $menu wofi --show=drun
+  $launcher nwg-drawer -c 7 -is 70 -spacing 23
+  $WOBSOCK $XDG_RUNTIME_DIR/wob.sock
+  
+  $my_cursor Adwaita
+  $my_cursor_size 32
+  $wallpapers ~/Pictures/Wallpapers
+  $wallpaper ~/Pictures/Wallpapers/night_tower.jpg
+}
+
+# swaymsg -t get_outputs
+set {
+  $Mon1 eDP-1
+  $Mon2 eDP-2
+  $HDMon1 HDMI-A-1
+  $HDMon2 HDMI-A-2
+}
+output $Mon1 resolution 2880x1800@90Hz position 0,0 scale 2 render_bit_depth 10
+# output $Mon2 resolution 1920x1080@60Hz position 0,0 scale 1.0
+# output $HDMon1 resolution 1920x1080 position 1920,0
+
+# set $laptop eDP-1
+# bindswitch lid:on output $laptop disable
+# bindswitch lid:off output $laptop enable
+# bindswitch --reload --locked lid:on output $laptop disable
+# bindswitch --reload --locked lid:off output $laptop enable
+
+# Cursor
+# seat seat0 xcursor_theme $my_cursor $my_cursor_size
+
+# Wallpaper
+# output "*" bg $wallpaper fill
+# output * bg #16161d solid_color
+output * bg `find $wallpapers -type f | shuf -n 1` fill
+
+# -------===[ Input ]===-------
+# swaymsg -t get_inputs
+input "*" {
+  # xkb_layout "us,cn"
+  # xkb_variant "colemak,,typewriter"
+  xkb_options "ctrl:swapcaps"
+  # repeat_rate 30
+  # repeat_delay 300
+}
+
+input "type:touchpad" {
+  tap enabled
+  natural_scroll enabled
+  # dwt enabled  # disable when typing
+  # accel_profile "flat"      #default
+  # pointer_accel 0.5 # set mouse sensitivity (between -1 and 1)
+}
+
+# Status bar
+bar {
+  swaybar_command waybar
+}
+
+# -------===[ Autostart ]===-------
+# exec autotiling
+exec autotiling-rs
+exec nm-applet --indicator
+exec blueman-applet
+exec fcitx5 -rd
+# exec wlsunset -l 22 -L 114
+exec wl-paste --watch cliphist store
+exec swayidle -w \
+  timeout 200 'brightnessctl -s s 10%' \
+     resume 'brightnessctl -r' \
+  timeout 300 'swaylock -f' \
+  timeout 360 'swaymsg "output * dpms off"' \
+     resume 'swaymsg "output * dpms on" && brightnessctl -r' \
+  before-sleep 'playerctl pause' \
+  before-sleep 'swaylock -f'
+
+# exec --no-startup-id  dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
+exec --no-startup-id systemctl --user import-environment XDG_SESSION_PATH WAYLAND_DISPLAY
+
+# Polkit daemon
+# exec mate-polkit
+# exec --no-startup-id /etc/polkit-gnome-authentication-agent-1
+
+# Wob
+# exec mkfifo /tmp/wobpipe
+# exec mkfifo /tmp/wobpipe | wob --border-color '#ffdcbb8c' --background-color '#cc3a3a3a' --bar-color '#ffdcbb8c'
+
+# Swayr
+# exec env RUST_BACKTRACE=1 RUST_LOG=swayr=debug swayrd > /tmp/swayrd.log 2>&1
+
+# Daemons
+# exec_always
+
+# -------===[ Keybindings ]===-------
+bindsym {
+  $mod+Return exec $term
+  $mod+t exec $float_term
+  $mod+w exec $browser
+  $mod+e exec $editor
+  $mod+f exec $filemanager
+  $mod+n exec $note
+  $mod+l exec hyprlock
+  $mod+Escape exec wlogout
+  Ctrl+alt+Delete exec wlogout
+  $mod+space exec $menu
+  $mod+x exec $menu
+  $mod+period exec wofi-emoji
+  $mod+v exec cliphist list | wofi --dmenu | cliphist decode | wl-copy
+
+  $mod+h floating toggle
+
+  $mod+q kill
+  $mod+Shift+q kill
+
+  $mod+Shift+r reload
+  $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
+
+  $mod+1 workspace number 1
+  $mod+2 workspace number 2
+  $mod+3 workspace number 3
+  $mod+4 workspace number 4
+  $mod+5 workspace number 5
+  $mod+6 workspace number 6
+  $mod+7 workspace number 7
+  $mod+8 workspace number 8
+  $mod+9 workspace number 9
+  $mod+0 workspace number 10
+
+  alt+1 move container to workspace number 1; workspace number 1
+  alt+2 move container to workspace number 2; workspace number 2
+  alt+3 move container to workspace number 3; workspace number 3 
+  alt+4 move container to workspace number 4; workspace number 4
+  alt+5 move container to workspace number 5; workspace number 5
+  alt+6 move container to workspace number 6; workspace number 6
+  alt+7 move container to workspace number 7; workspace number 7
+  alt+8 move container to workspace number 8; workspace number 8
+  alt+9 move container to workspace number 9; workspace number 9
+  alt+0 move container to workspace number 10; workspace number 10
+
+  $mod+f7 output $Mon1 toggle
+  $mod+f11 fullscreen
+
+  # Layouts
+  $mod+Left move left  
+  $mod+Down move down  
+  $mod+Up move up      
+  $mod+Right move right
+
+  # Resizing
+  $mod+Shift+Left resize shrink width 10px
+  $mod+Shift+Up resize grow height 10px
+  $mod+Shift+Down resize shrink height 10px
+  $mod+Shift+Right resize grow width 10px
+
+  $mod+Shift+minus move scratchpad
+  $mod+minus scratchpad show
+  alt+tab scratchpad show
+}
+
+# TODO
+# Activities
+bindsym $mod+p exec swayr switch-window
+
+# Activities and workspaces
+bindsym $mod+Shift+p exec swayr switch-workspace-or-window
+
+# Switch to the last recently used window
+bindsym $mod+Tab exec swayr switch-to-urgent-or-lru-window
+
+# Switch the current container between different layout styles
+# bindsym $mod+s layout stacking
+# bindsym $mod+w layout tabbed
+# bindsym $mod+e layout toggle split
+
+# bindsym $mod+Ctrl+Left move workspace to output left
+# bindsym $mod+Ctrl+Down move workspace to output down
+# bindsym $mod+Ctrl+Up move workspace to output up
+# bindsym $mod+Ctrl+Right move workspace to output right
+
+mode "resize" {
+  bindsym Left resize shrink width 30px
+  bindsym Down resize grow height 30px
+  bindsym Up resize shrink height 30px
+  bindsym Right resize grow width 30px
+
+  bindsym Escape mode "default"
+  bindsym Ctrl+c mode "default"
+}
+bindsym $mod+r mode "resize"
+
+# Drag floating windows
+floating_modifier $mod normal
+
+# bindsym --whole-window $mod+button1 move window
+
+# Screenshots
+# bindsym Print exec grim ~/Pictures/screenshot_$(date +'%F-%T.png') && notify-send Screenshot "Full Screen Captured"
+# bindsym $mod+Shift+s exec grim -g "$(slurp)" ~/Pictures/screenshot_region_$(date +'%F-%T.png') && notify-send Screenshot "Region Screen Captured"
+bindsym Print exec shotman -c output
+bindsym $mod+Shift+w exec shotman -c window
+bindsym $mod+Shift+s exec shotman -c region
+
+# Brightness & Volume
+bindsym --locked {
+  XF86AudioRaiseVolume exec volumectl -u up
+  XF86AudioLowerVolume exec volumectl -u down
+  XF86AudioMute exec volumectl toggle-mute
+  XF86AudioMicMute exec volumectl -m toggle-mute
+
+  XF86MonBrightnessUp exec lightctl up
+  XF86MonBrightnessDown exec lightctl down
+
+  XF86AudioPlay exec playerctl play-pause
+  XF86AudioNext exec playerctl next
+  XF86AudioPrev exec playerctl previousz
+
+  XF86Search exec $menu
+}
+
+# Cosmetics
+default_border pixel 3
+
+gaps inner 4
+gaps outer 4
+gaps top -5
+
+# Hide gaps when there is only 1 window
+smart_gaps on
+
+# Window decoration
+# class                 border  backgr. text    indicator child_border
+client.focused          #6272A4 #6272A4 #F8F8F2 #6272A4   #6272A4
+client.focused_inactive #44475A #44475A #F8F8F2 #44475A   #44475A
+client.unfocused        #282A36 #282A36 #BFBFBF #282A36   #282A36
+client.urgent           #44475A #FF5555 #F8F8F2 #FF5555   #FF5555
+client.placeholder      #282A36 #282A36 #F8F8F2 #282A36   #282A36
+
+client.background       #F8F8F2
+
+# Windows Rules
+# swaymsg -t get_tree | jq -r '..|try select(.app_id)' 
+for_window {
+  [title="Firefox — Sharing Indicator"] floating enable
+  [title="alacritty"] opacity 0.90
+  [title="foot"] floating enable
+  [title="nomacs"] floating enable
+  [title="qBittorrent"] floating enable, resize set 960 540
+  [app_id="jamesdsp"] floating enable
+  [app_id="pavucontrol"] floating enable
+  [app_id="blueman-manager"] floating enable
+  [class="vlc"] inhibit_idle fullscreen
+  [workspace="5"] layout tabbed
+}

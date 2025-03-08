@@ -1,0 +1,19 @@
+# Make prompt a single line instead of two lines
+# [line_break]
+# disabled = true
+
+# Print a new line at the start of the prompt
+# add_newline = false
+
+# Timeout for commands executed by starship (in milliseconds).
+command_timeout = 3000
+
+# disable "It took xxs"
+# cmd_duration.disabled = true;
+
+# [character]
+# success_symbol = '[>](bold green)'
+# error_symbol = '[✗](bold red)'
+
+# [nix_shell]
+# format = 'via [☃️ $state( \($name\))](bold blue) '

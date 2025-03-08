@@ -1,0 +1,269 @@
+{
+  "layer": "top",
+  "position": "top",
+  "mod": "dock",
+  "output": "eDP-1",
+  "height": 30,
+
+  "modules-left": [
+    // "custom/launcher",
+    // "wlr/workspaces",
+    "sway/workspaces",
+    "wlr/taskbar",
+  ],
+  "modules-center": [
+    // "custom/notification",
+    "clock",
+    "custom/playerctl",
+  ],
+  "modules-right": [
+    "tray",
+    "pulseaudio",
+    "backlight",
+    // "idle_inhibitor",
+    "battery",
+    // "custom/sysmenu",
+    "custom/logout",
+  ],
+
+  // Modules configuration
+
+  "wlr/workspaces": {
+    "disable-scroll": true,
+    "all-outputs": true,
+    "on-click": "activate",
+    //"format": "{icon}",
+    "persistent_workspaces": {
+      "1": [],
+      "2": [],
+      "3": [],
+      "4": [],
+      "5": [],
+      "6": [],
+      "7": [],
+      "8": [],
+      "9": [],
+      "10": [],
+    },
+    /*"format-icons": {
+      "1": "",
+      "2": "",
+      "3": "",
+      "4": "",
+      "5": "",
+      "6": "",
+      "7": "",
+      "8": "",
+      "9": "",
+      "10": "",
+      "default": "",
+      "active": ""
+      }*/
+  },
+
+  "wlr/taskbar": {
+    "format": "{icon}",
+    "icon-size": 18,
+    // "icon-theme": "Papirus-Dark",
+    "tooltip-format": "{app_id}: {title}",
+    "on-click": "activate",
+    "on-click-middle": "close",
+  },
+
+  "sway/mode": {
+    "format": "<span style=\"italic\">  {}</span>", // Icon: expand-arrows-alt
+    "tooltip": false,
+  },
+
+  "sway/window": {
+    "format": "{}",
+    "max-length": 120,
+  },
+
+  "sway/workspaces": {
+    "all-outputs": false,
+    "disable-scroll": true,
+    "format": "{icon} {name}",
+    "format-icons": {
+      "1:www": "",
+      "2:mail": "",
+      "3:editor": "",
+      "4:terminals": "",
+      "5:portal": "",
+      "urgent": "",
+      "focused": "",
+      "default": "",
+    },
+  },
+
+  "custom/sysmenu": {
+    "format": "󰤆",
+    "on-click": "sh $HOME/.config/waybar/scripts/sysmenu.sh",
+    "tooltip": false,
+  },
+
+  "clock": {
+    "timezone": "Asia/Shanghai",
+    "on-click": "calcurse",
+    //"format": "{: %m/%d   %R}",
+    "format": " {:%R}",
+    "tooltip-format": "<big>{:%Y %B}</big>\n\n<tt>{calendar}</tt>",
+  },
+
+  "cpu": {
+    "interval": 5,
+    "format": "﬙ {usage}%",
+    "states": {
+      "warning": 70,
+      "critical": 90,
+    },
+    "on-click": "swaymsg exec \\$term_float htop",
+  },
+
+  "memory": {
+    "interval": 5,
+    "format": " {}%",
+    "states": {
+      "warning": 70,
+      "critical": 90,
+    },
+    "on-click": "swaymsg exec \\$term_float htop",
+  },
+
+  "idle_inhibitor": {
+    "format": "{icon}",
+    "format-icons": {
+      "activated": "",
+      "deactivated": "",
+    },
+  },
+
+  "temperature": {
+    "critical-threshold": 90,
+    "interval": 5,
+    "format": "{icon} {temperatureC}°C",
+    "format-icons": ["", "", ""],
+    "tooltip": false,
+    "on-click": "swaymsg exec \"\\$term_float watch sensors\"",
+  },
+
+  "custom/caffeine": {
+    "exec": "~/.config/waybar/scripts/caffeine.sh",
+    "return-type": "json",
+    "interval": 3,
+    "format-icons": ["❄️", "", "", "", ""],
+    "format": "{icon}",
+  },
+
+  "custom/logout": {
+    "on-click": "wlogout",
+    "format-icons": ["⏻"],
+    "format": "{icon}",
+  },
+
+  "custom/weather": {
+    "return-type": "json",
+    "interval": 1800,
+    "exec": "sh $HOME/.config/waybar/scripts/weather.sh",
+  },
+
+  "custom/playerctl": {
+    "format": "  {}",
+    "max-length": 60,
+    "interval": 5, // Remove this if your script is endless and write in loop
+    "exec": "$HOME/.config/waybar/scripts/playerctl.sh 2> /dev/null",
+    "tooltip": false,
+    "on-click": "playerctl play-pause",
+    "on-click-right": "playerctl next",
+    "on-scroll-up": "playerctl previous",
+    "on-scroll-down": "playerctl next",
+  },
+
+  "custom/language": {
+    "exec": "cat /tmp/kb_layout",
+    "interval": 3,
+    "format": " {}",
+  },
+
+  "custom/notification": {
+    "tooltip": false,
+    "format": "{icon}",
+    "format-icons": {
+      "notification": "",
+      "none": " ",
+      "dnd-notification": "",
+      "dnd-none": " ",
+    },
+    "return-type": "json",
+    "exec-if": "which swaync-client",
+    "exec": "swaync-client -swb",
+    "on-click": "swaync-client -t -sw",
+    "on-click-right": "swaync-client -d -sw",
+    "escape": true,
+  },
+
+  "custom/launcher": {
+    "format": " ",
+    "on-click": "exec nwg-drawer -c 7 -is 70 -spacing 23",
+    "tooltip": false,
+  },
+
+  "tray": {
+    "icon-size": 13,
+    "spacing": 10,
+  },
+
+  "backlight": {
+    "device": "backlight",
+    "format": "{icon} {percent}%",
+    "format-icons": ["🔅", "🔆"],
+    "on-scroll-up": "brightnessctl set 1%+",
+    "on-scroll-down": "brightnessctl set 1%-",
+    // "min-length": 6,
+    "on-click": "sh $HOME/.config/waybar/scripts/sunset.sh",
+  },
+
+  "battery": {
+    "states": {
+      "good": 95,
+      "warning": 30,
+      "critical": 20,
+    },
+    "format": "{icon}",
+    "format-charging": " {capacity}%",
+    "format-plugged": " {capacity}%",
+    "format-alt": "{time} {icon}",
+    "tooltip-format": "{capacity}%",
+    "tooltip": true,
+    "on-click": "exec gnome-power-statistics",
+    "format-icons": ["", "", "", "", ""],
+  },
+
+  "network": {
+    "format-wifi": " {essid}",
+    "format-ethernet": " {essid}",
+    "format-linked": "{ifname} (No IP) ",
+    "format-disconnected": "⚠ Disconnected",
+    "tooltip-format-wifi": "Signal Strenght: {signalStrength}% | Down Speed: {bandwidthDownBits}, Up Speed: {bandwidthUpBits}",
+  },
+
+  "pulseaudio": {
+    "format": "{icon} {volume}% {format_source}",
+    "format-muted": "🔇 {format_source}",
+    "format-source": "",
+    "format-source-muted": "",
+    //"format-bluetooth" : "{volume}% {icon}  {format_source}";
+    //"format-bluetooth-muted" : " {icon}  {format_source}";
+    "scroll-step": 1,
+    "on-click": "pavucontrol",
+    "format-icons": {
+      "headphone": "",
+      "hands-free": "",
+      "headset": "",
+      "phone": "",
+      "portable": "",
+      "car": "",
+      "default": ["", "", ""],
+    },
+  },
+}

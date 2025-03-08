@@ -1,0 +1,104 @@
+// https://github.com/maxhbr/myconfig/blob/master/modules/myconfig.desktop.wayland.niri/config.kdl
+
+hotkey-overlay {
+    skip-at-startup
+}
+
+input {
+    keyboard {
+        xkb {
+            options "ctrl:swapcaps"
+        }
+    }
+    touchpad {
+        tap
+        natural-scroll
+    }
+}
+
+output "eDP-1" {
+    mode "2880x1800"
+    // scale 2
+    
+    // Transform allows to rotate the output counter-clockwise, valid values are:
+    // normal, 90, 180, 270, flipped, flipped-90, flipped-180 and flipped-270.
+    transform "normal"
+}
+
+layout {
+    gaps 14
+    // center-focused-column "on-overflow"
+
+    // You can change the default width of the new windows.
+    // default-column-width { proportion 1.0; }
+}
+
+spawn-at-startup "waybar"
+spawn-at-startup "wl-paste" "--watch" "cliphist" "store"
+
+binds {
+    Mod+Return { spawn "kitty"; }
+    Mod+E { spawn "emacs"; }
+    Mod+W { spawn "firefox"; }
+    Mod+F { spawn "thunar"; }
+    Mod+X { spawn "wofi" "--show" "drun"; }
+    Mod+L { spawn "hyprlock"; }
+    Mod+V { spawn "sh" "-c" "cliphist list | wofi --dmenu | cliphist decode | wl-copy"; }
+
+    Mod+Shift+Slash { show-hotkey-overlay; }
+    Mod+Q { close-window; }
+
+    Mod+Left  { focus-column-left; }
+    Mod+Down  { focus-window-down; }
+    Mod+Up    { focus-window-up; }
+    Mod+Right { focus-column-right; }
+
+    Mod+Ctrl+Left  { move-column-left; }
+    Mod+Ctrl+Down  { move-window-down; }
+    Mod+Ctrl+Up    { move-window-up; }
+    Mod+Ctrl+Right { move-column-right; }
+
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    Mod+6 { focus-workspace 6; }
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+    Mod+Ctrl+1 { move-column-to-workspace 1; }
+    Mod+Ctrl+2 { move-column-to-workspace 2; }
+    Mod+Ctrl+3 { move-column-to-workspace 3; }
+    Mod+Ctrl+4 { move-column-to-workspace 4; }
+    Mod+Ctrl+5 { move-column-to-workspace 5; }
+    Mod+Ctrl+6 { move-column-to-workspace 6; }
+    Mod+Ctrl+7 { move-column-to-workspace 7; }
+    Mod+Ctrl+8 { move-column-to-workspace 8; }
+    Mod+Ctrl+9 { move-column-to-workspace 9; }
+
+    Mod+Shift+F { fullscreen-window; }
+    Mod+R { switch-preset-column-width; }
+    // Mod+F { maximize-column; }
+    Mod+C { center-column; }
+
+    Mod+Minus { set-column-width "-10%"; }
+    Mod+Equal { set-column-width "+10%"; }
+
+    Print { screenshot; }
+    Ctrl+Print { screenshot-screen; }
+    Alt+Print { screenshot-window; }
+
+    Mod+Shift+E { quit; }
+
+    Mod+Shift+P { power-off-monitors; }
+
+    XF86AudioRaiseVolume allow-when-locked=true { spawn "volumectl" "-u" "up"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn "volumectl" "-u" "down"; }
+    XF86AudioMute        allow-when-locked=true { spawn "volumectl"  "toggle-mute"; }
+    XF86AudioMicMute     allow-when-locked=true { spawn "volumectl" "-m" "toggle-mute"; }
+
+    XF86MonBrightnessUp { spawn "lightctl" "up"; }
+    XF86MonBrightnessDown { spawn "lightctl" "down"; }
+}
+

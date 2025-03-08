@@ -1,0 +1,10 @@
+default_shell "zsh"
+
+simplified_ui true
+pane_frames false
+
+theme "nord"
+
+keybinds {
+    unbind "Ctrl q" // unbind in all modes
+}

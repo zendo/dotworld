@@ -1,0 +1,7 @@
+result
+result-*
+*.qcow2
+.envrc
+.direnv
+.devenv
+.DS_Store
