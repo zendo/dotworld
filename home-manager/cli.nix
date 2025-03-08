@@ -102,15 +102,24 @@
     # airgeddon # wifi crack
 
     # Game & fun
+    # curl parrot.live
+    # fortune | cowsay -f tux | lolcat
     sl
     cowsay
+    # xcowsay
     fortune
-    cmatrix
+    # figlet
+    # toilet
     clolcat
-    # pipes-rs
+    cmatrix
+    # lavat
     # cbonsai
+    # pipes-rs
     # hollywood
-    # nyancat
+    # snowmachine
+    # oneko
+    nyancat
+    asciiquarium
   ];
 
   programs = {
