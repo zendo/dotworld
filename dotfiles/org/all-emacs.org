@@ -103,9 +103,6 @@
 ;; Load the default init file
 ;; (load "default" 'noerror 'nomessage)
 
-;; Follow symlinks without prompt
-(setq vc-follow-symlinks t)
-
 (provide 'init)
 ;;; init.el ends here
 #+end_src
@@ -130,10 +127,8 @@
   :config
   (diminish 'eldoc-mode) ;echo area 显示函数的参数列表
   (diminish 'visual-line-mode))
-#+end_src
 
-** library
-#+begin_src emacs-lisp
+;; libraries
 (require 'cl-lib)
 ;; (use-package dash) ;modern list library
 (use-package s) ;string manipulation library
@@ -230,6 +225,9 @@ https://lucidmanager.org/productivity/emacs-windows/ Using Emacs on Windows 11: 
 ;; Allow for shorter responses: "y" for yes and "n" for no.
 ;; (setq read-answer-short t)
 (fset 'yes-or-no-p 'y-or-n-p)
+
+;; Follow symlinks without prompt
+(setq vc-follow-symlinks t)
 
 ;; disable warnings
 (setq warning-minimum-level :emergency
@@ -472,16 +470,12 @@ https://lucidmanager.org/productivity/emacs-windows/ Using Emacs on Windows 11: 
 
 * Editing
 #+begin_src emacs-lisp
-(delete-selection-mode t)                   ;overwrite selected text
+(delete-selection-mode t) ;overwrite selected text
 
-;; (global-visual-line-mode 1)                 ;折叠 word wrap
+;; (global-visual-line-mode 1) ;折叠 word wrap
 
-(setq-default tab-width 4
-              indent-tabs-mode nil) ;indent with spaces, never with TABs
+(global-prettify-symbols-mode 1) ;Show lambda as λ.
 
-(show-paren-mode 1)                         ;括号匹配 parens
-(electric-pair-mode t)                      ;自动补全括号
-(global-prettify-symbols-mode 1)            ;Show lambda as λ.
 (setq sentence-end-double-space nil ;Sentences should end in one space
       sentence-end "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*" ;识别中文标点符号
       require-final-newline t)
@@ -498,13 +492,22 @@ https://lucidmanager.org/productivity/emacs-windows/ Using Emacs on Windows 11: 
     (set-selection-coding-system 'utf-8))
 #+end_src
 
-** whitespace
+** parens
 #+begin_src emacs-lisp
-  (setq whitespace-action '(auto-cleanup)  ;automatically clean up bad whitespace
-        whitespace-style '(face
-                           trailing space-before-tab
-                           indentation empty space-after-tab))
-  (whitespace-mode 1)
+(show-paren-mode 1)    ;括号匹配 parens
+(electric-pair-mode t) ;自动补全括号
+#+end_src
+
+** tabs and whitespace
+#+begin_src emacs-lisp
+(setq-default tab-width 4
+              indent-tabs-mode nil) ;indent with spaces, never with TABs
+
+(setq whitespace-action '(auto-cleanup)  ;automatically clean up bad whitespace
+      whitespace-style '(face
+                         trailing space-before-tab
+                         indentation empty space-after-tab))
+(whitespace-mode 1)
 #+end_src
 
 ** fill-column
@@ -1096,7 +1099,7 @@ https://github.com/minad/corfu
   :bind
   (:map corfu-map
         ("<escape>" . corfu-quit)
-        ("<tab>" . corfu-complete)
+        ("<tab>" . corfu-next)
         ("M-d" . corfu-info-documentation)
         ("M-l" . corfu-info-location))
   :hook ((prog-mode . corfu-mode)
@@ -1188,9 +1191,8 @@ Completion style for matching regexps in any order
 #+BEGIN_SRC emacs-lisp
 (which-key-mode)
 
-;; Don't ping things that look like domain names.
-(setq ffap-machine-p-known 'reject)
 (ffap-bindings) ;find-file-at-point, smarter C-x C-f when point on path or URL
+(setq ffap-machine-p-known 'reject) ; Don't ping things that look like domain names.
 
 ;; (global-set-key (kbd "C-z") 'nil) ;unbind C-z
 (global-set-key (kbd "C-z") 'undo)
@@ -1481,6 +1483,7 @@ https://github.com/alphapapa/org-super-agenda
 ** Org-modern
 #+begin_src emacs-lisp
 (use-package org-modern
+  :disable t
   :after org
   :hook (org-mode . org-modern-mode))
 #+end_src
