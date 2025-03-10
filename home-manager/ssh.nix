@@ -3,9 +3,9 @@
   programs.ssh = {
     enable = true;
     extraConfig = ''
-      Host github.com
-        HostName ssh.github.com
-        Port 443
+      # Host github.com
+      #   HostName ssh.github.com
+      #   Port 443
 
       Host yoga
         HostName 192.168.1.118

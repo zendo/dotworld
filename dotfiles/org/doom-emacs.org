@@ -420,7 +420,8 @@
 
 (after! dired
   (setq dired-listing-switches "-aBhlv --group-directories-first"
-        dired-omit-files "\\`[.]?#\\|\\`[.][.]?")
+        dired-omit-files "\\`[.]?#\\|\\`[.][.]?"  ; hide dot files
+        )
   (map! :map dired-mode-map
         "f" #'ido-find-file
         "<RET>" #'dired-find-alternate-file
@@ -464,7 +465,6 @@
 
 ** Keybindings
 #+begin_src emacs-lisp
-
 (ffap-bindings)
 (setq ffap-machine-p-known 'reject) ; Don't ping things that look like domain names.
 
@@ -610,7 +610,7 @@
    :prefix ("z" . "zap")
    "SPC" #'just-one-space
    ))
-#+end_#+begin_src
+#+end_src
 
 ** Functions
 *** backward-delete-word

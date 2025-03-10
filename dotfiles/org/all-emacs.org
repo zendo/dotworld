@@ -136,6 +136,8 @@
 #+end_src
 
 * Systems
+Use ~getenv~ check the environment variables.
+
 ** variables
 #+begin_src emacs-lisp
 (defconst IS-MAC     (eq system-type 'darwin))
@@ -193,12 +195,6 @@ https://lucidmanager.org/productivity/emacs-windows/ Using Emacs on Windows 11: 
   :config
   ;; (setq kkp-alt-modifier 'alt) ;; use this if you want to map the Alt keyboard modifier to Alt in Emacs (and not to Meta)
   (global-kkp-mode +1))
-#+end_src
-
-** list-environment
-#+begin_src emacs-lisp
-(use-package list-environment
-  :commands list-environment)
 #+end_src
 
 * General

@@ -32,9 +32,19 @@
     # self.nixosModules.hyprland
   ];
 
+  disabledModules = [
+    "services/networking/sing-box.nix"
+  ];
+
   services = {
     # displayManager.autoLogin.user = "${username}";
     # v2raya.enable = true;
+
+    sing-box ={
+      enable = true;
+      configFile = "/home/iab/.sub/config.json";
+      # configFile = "/home/iab/.local/share/GUI.for.SingBox/data/sing-box/config.json";
+    };
   };
 
   programs = {
@@ -50,7 +60,7 @@
 
     clash-verge = {
       enable = true;
-      autoStart = true;
+      # autoStart = true;
     };
   };
 
