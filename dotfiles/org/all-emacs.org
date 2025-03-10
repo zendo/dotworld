@@ -468,7 +468,7 @@ https://lucidmanager.org/productivity/emacs-windows/ Using Emacs on Windows 11: 
   (ultra-scroll-mode 1))
 #+end_src
 
-* Editing
+* Editor
 #+begin_src emacs-lisp
 (delete-selection-mode t) ;overwrite selected text
 
@@ -568,15 +568,15 @@ https://lucidmanager.org/productivity/emacs-windows/ Using Emacs on Windows 11: 
   :custom ((dired-recursive-copies 'always) ;递归操作目录
            (dired-recursive-deletes 'top) ;询问一次;
            (dired-auto-revert-buffer t)
-           (dired-omit-files (concat dired-omit-files "\\|^\\..+$")) ;hide .dot files when in dired-omit-mode
+           (dired-omit-files "\\`[.]?#\\|\\`[.][.]?") ;hide .dot files
            (dired-listing-switches "-lha --group-directories-first"))
   :bind (("s-d" . dired-jump)
          ("C-x C-d" . dired-jump)
          :map dired-mode-map
          ("f" . consult-find)
          ("RET" . dired-find-alternate-file)
-         ("." . dired-do-print)
-         ("," . dired-omit-mode)
+         ("." . dired-omit-mode)
+         ("," . dired-do-print)
          ("/" . funs/dired-filter-show-match)
          ("b" . (lambda ()
                   (interactive)
@@ -622,7 +622,7 @@ https://lucidmanager.org/productivity/emacs-windows/ Using Emacs on Windows 11: 
   :commands disk-usage)
 #+end_src
 
-* Backups
+* Backup
 #+begin_src emacs-lisp
 ;; save system clipboard before emacs clipboard
 (setq save-interprogram-paste-before-kill t)
@@ -959,7 +959,13 @@ Show current command and its binding.
 ;;             :rev :newest))
 #+end_src
 
-* Minibuffer
+* Completions
+#+begin_src emacs-lisp
+(setq tab-always-indent 'complete   ;Tab key indent first then completion.
+      completion-cycle-threshold 3  ;TAB cycle if there are only few candidates
+      )
+#+end_src
+
 ** vertico
 VERTical Interactive COmpletion.
 
@@ -989,7 +995,7 @@ VERTical Interactive COmpletion.
 
 ** marginali
  Enrich existing commands with completion annotations.
- 
+
 #+begin_src emacs-lisp
 (use-package marginalia
   :after vertico
@@ -1040,13 +1046,6 @@ Mini-Buffer Actions Rooted in Keymaps.
   :after (embark consult)
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
-#+end_src
-
-* Completions
-#+begin_src emacs-lisp
-(setq tab-always-indent 'complete   ;Tab key indent first then completion.
-      completion-cycle-threshold 3  ;TAB cycle if there are only few candidates
-      )
 #+end_src
 
 ** Hippie Expand
@@ -1654,9 +1653,9 @@ https://one.tonyaldon.com/
   :init
   ;; disable flycheck in some mode
   (setq flycheck-disabled-checkers '(
-                                     ;; emacs-lisp
-                                     ;; emacs-lisp-checkdoc
-                                     ;; sh-shellscript
+                                     emacs-lisp
+                                     emacs-lisp-checkdoc
+                                     sh-shellscript
                                      )))
 #+end_src
 

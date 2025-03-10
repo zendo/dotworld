@@ -1,0 +1,627 @@
+#+TITLE: Doom Emacs literate configuration
+#+AUTHOR: zendo
+#+DATE: 03/2025
+#+STARTUP: show2levels indent
+#+AUTO_TANGLE: t
+
+* init
+#+begin_src emacs-lisp :tangle "~/.doom.d/init.el"
+;;; $DOOMDIR/init.el -*- lexical-binding: t; -*-
+(doom! :input
+       ;;chinese
+       ;;japanese
+       ;;layout            ; auie,ctsrnm is the superior home row
+
+       :completion
+       ;; company           ; the ultimate code completion backend
+       (corfu +orderless) ; complete with cap(f), cape and a flying feather!
+       ;;helm              ; the *other* search engine for love and life
+       ;;ido               ; the other *other* search engine...
+       ;; (ivy               ; a search engine for love and life
+       ;;  +icons
+       ;;  +prescient)
+       (vertico           ; the search engine of the future
+        +icons)
+
+       :ui
+       ;; deft              ; notational velocity for Emacs
+       doom              ; what makes DOOM look the way it does
+       doom-dashboard    ; a nifty splash screen for Emacs
+       ;; doom-quit         ; DOOM quit-message prompts when you quit Emacs
+       ;; (emoji +unicode)  ; 🙂
+       hl-todo           ; highlight TODO/FIXME/NOTE/DEPRECATED/HACK/REVIEW
+       ;;indent-guides     ; highlighted indent columns
+       ;;ligatures         ; ligatures and symbols to make your code pretty again
+       ;;minimap           ; show a map of the code on the side
+       (modeline +light)          ; snazzy, Atom-inspired modeline, plus API
+       ;; nav-flash         ; blink cursor line after big motions
+       ophints           ; highlight the region an operation acts on
+       (popup +defaults)   ; tame sudden yet inevitable temporary windows
+       ;; tabs              ; a tab bar for Emacs
+       treemacs          ; a project drawer, like neotree but cooler
+       ;; neotree           ; a project drawer, like NERDTree for vim
+       ;;unicode           ; extended unicode support for various languages
+       (vc-gutter +pretty)         ; vcs diff in the fringe
+       vi-tilde-fringe   ; fringe tildes to mark beyond EOB
+       window-select     ; visually switch windows
+       workspaces        ; tab emulation, persistence & separate workspaces
+       zen               ; distraction-free coding or writing
+
+       :editor
+       ;; (evil +everywhere); come to the dark side, we have cookies
+       ;; (meow +qwerty +override +keypad)
+       ;; file-templates    ; auto-snippets for empty files
+       fold              ; (nigh) universal code folding
+       ;; (format +onsave)  ; automated prettiness
+       ;;god               ; run Emacs commands without modifier keys
+       ;;lispy             ; vim for lisp, for people who don't like vim
+       multiple-cursors  ; editing in many places at once
+       ;; (objed +manual)             ; text object editing for the innocent
+       ;;parinfer          ; turn lisp into python, sort of
+       ;;rotate-text       ; cycle region at point between text candidates
+       snippets          ; my elves. They type so I don't have to
+       ;; word-wrap         ; soft wrapping with language-aware indent
+
+       :emacs
+       (dired +icons)            ; making dired pretty [functional]
+       electric          ; smarter, keyword-based electric-indent
+       ;;eww           ; the internet is gross
+       ibuffer         ; interactive buffer management
+       undo              ; persistent, smarter undo for your inevitable mistakes
+       vc                ; version-control and Emacs, sitting in a tree
+
+       :term
+       eshell            ; the elisp shell that works everywhere
+       ;;shell             ; simple shell REPL for Emacs
+       ;;term              ; basic terminal emulator for Emacs
+       vterm             ; the best terminal emulation in Emacs
+
+       :checkers
+       syntax              ; tasing you for every semicolon you forget
+       ;;(spell +flyspell) ; tasing you for misspelling mispelling
+       ;;grammar           ; tasing grammar mistake every you make
+
+       :tools
+       ;;ansible
+       ;;biblio            ; Writes a PhD for you (citation needed)
+       ;;collab            ; buffers with friends
+       ;;debugger          ; FIXME stepping through code, to help you add bugs
+       direnv
+       ;;docker
+       editorconfig      ; let someone else argue about tabs vs spaces
+       ;;ein               ; tame Jupyter notebooks with emacs
+       (eval +overlay)     ; run code, run (also, repls)
+       lookup              ; navigate your code and its documentation
+       lsp               ; M-x vscode
+       magit             ; a git porcelain for Emacs
+       ;;make              ; run make tasks from Emacs
+       ;;pass              ; password manager for nerds
+       ;; pdf               ; pdf enhancements
+       ;;prodigy           ; FIXME managing external services & code builders
+       ;;terraform         ; infrastructure as code
+       ;;tmux              ; an API for interacting with tmux
+       tree-sitter       ; syntax and parsing, sitting in a tree...
+       ;;upload            ; map local to remote projects via ssh/ftp
+
+       :os
+       ;; (:if IS-MAC macos)  ; improve compatibility with macOS
+       tty               ; improve the terminal Emacs experience
+
+       :lang
+       ;;agda              ; types of types of types of types...
+       ;;beancount         ; mind the GAAP
+       ;;(cc +lsp)                ; C > C++ == 1
+       ;;clojure           ; java with a lisp
+       ;;common-lisp       ; if you've seen one lisp, you've seen them all
+       ;;coq               ; proofs-as-programs
+       ;;crystal           ; ruby at the speed of c
+       ;;csharp            ; unity, .NET, and mono shenanigans
+       ;;data              ; config/data formats
+       ;;(dart +flutter)   ; paint ui and not much else
+       ;;dhall
+       ;;elixir            ; erlang done right
+       ;;elm               ; care for a cup of TEA?
+       emacs-lisp        ; drown in parentheses
+       ;;erlang            ; an elegant language for a more civilized age
+       ;;ess               ; emacs speaks statistics
+       ;;factor
+       ;;faust             ; dsp, but you get to keep your soul
+       ;;fortran           ; in FORTRAN, GOD is REAL (unless declared INTEGER)
+       ;;fsharp            ; ML stands for Microsoft's Language
+       ;;fstar             ; (dependent) types and (monadic) effects and Z3
+       ;;gdscript          ; the language you waited for
+       (go +lsp +tree-sitter)         ; the hipster dialect
+       ;;(haskell +lsp)    ; a language that's lazier than I am
+       ;;hy                ; readability of scheme w/ speed of python
+       ;;idris             ; a language you can depend on
+       (json +tree-sitter)              ; At least it ain't XML
+       ;;(java +lsp) ; the poster child for carpal tunnel syndrome
+       ;;javascript        ; all(hope(abandon(ye(who(enter(here))))))
+       ;;julia             ; a better, faster MATLAB
+       ;;kotlin            ; a better, slicker Java(Script)
+       ;;latex             ; writing papers in Emacs has never been so fun
+       ;;lean              ; for folks with too much to prove
+       ;;ledger            ; be audit you can be
+       lua               ; one-based indices? one-based indices
+       markdown          ; writing docs for people to ignore
+       ;;nim               ; python + lisp at the speed of c
+       (nix +lsp +tree-sitter)               ; I hereby declare "nix geht mehr!"
+       ;;ocaml             ; an objective camel
+       org               ; organize your plain life in plain text
+       ;;php               ; perl's insecure younger brother
+       ;;plantuml          ; diagrams for confusing people more
+       ;;graphviz          ; diagrams for confusing yourself even more
+       ;;purescript        ; javascript, but functional
+       (python +lsp +tree-sitter)            ; beautiful is better than ugly
+       ;;qt                ; the 'cutest' gui framework ever
+       ;;racket            ; a DSL for DSLs
+       ;;raku              ; the artist formerly known as perl6
+       ;;rest              ; Emacs as a REST client
+       ;;rst               ; ReST in peace
+       ;;(ruby +rails)     ; 1.step {|i| p "Ruby is #{i.even? ? 'love' : 'life'}"}
+       (rust +lsp)              ; Fe2O3.unwrap().unwrap().unwrap().unwrap()
+       ;;scala             ; java, but good
+       ;;(scheme +guile)   ; a fully conniving family of lisps
+       (sh +tree-sitter)                ; she sells {ba,z,fi}sh shells on the C xor
+       ;;sml
+       ;;solidity          ; do you need a blockchain? No.
+       ;;swift             ; who asked for emoji variables?
+       ;;terra             ; Earth and Moon in alignment for performance.
+       ;;web               ; the tubes
+       yaml              ; JSON, but readable
+       ;;zig               ; C, but simpler
+
+       :email
+       ;;(mu4e +org +gmail)
+       ;;notmuch
+       ;;(wanderlust +gmail)
+
+       :app
+       ;; calendar
+       ;;emms
+       ;;everywhere        ; *leave* Emacs!? You must be joking
+       ;;irc               ; how neckbeards socialize
+       ;;(rss +org)        ; emacs as an RSS reader
+
+       :config
+       literate
+       (default +bindings +smartparens))
+#+end_src
+
+* package
+#+begin_src emacs-lisp :tangle "~/.doom.d/packages.el"
+;;;; $DOOMDIR/packages.el -*- lexical-binding: t; -*-
+(package! crux)
+(package! rotate)
+(package! easy-kill)
+(package! smart-region)
+(package! avy-zap)
+(package! iedit)
+(package! fanyi)
+(package! ialign)
+(package! just-mode)
+(package! deadgrep)
+(package! indent-bars)
+(package! goto-last-change)
+(package! dired-git-info)
+(package! powershell)
+(package! super-save)
+;; (package! this-package
+;; :recipe (:host github :repo "camdez/goto-last-change"))
+(package! org-modern :disable t)
+#+end_src
+
+* config
+#+PROPERTY: header-args:emacs-lisp :results silent :tangle "~/.doom.d/config.el"
+** Header
+#+begin_src emacs-lisp
+;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
+;; Here are some additional functions/macros that could help you configure Doom:
+;;
+;; - `load!' for loading external *.el files relative to this one
+;; - `use-package!' for configuring packages
+;; - `after!' for running code after a package has loaded
+;; - `add-load-path!' for adding directories to the `load-path', relative to
+;;   this file. Emacs searches the `load-path' when you load packages with
+;;   `require' or `use-package'.
+;; - `map!' for binding new keys
+#+end_src
+
+** Silence Warnings
+#+begin_src emacs-lisp
+(setq confirm-kill-emacs nil
+      confirm-kill-processes nil
+      warning-minimum-level :emergency ; temp disable
+      )
+
+;; throw custom file
+(setq-default custom-file (expand-file-name ".custom.el" doom-local-dir))
+(when (file-exists-p custom-file)
+  (load custom-file))
+
+;; disable prompt
+(put 'dired-find-alternate-file 'disabled nil)
+
+;; Load the default init file
+(load "default" 'noerror 'nomessage)
+#+end_src
+
+** Systems
+*** Windows
+#+begin_src emacs-lisp
+(when (featurep :system 'windows)
+  (setq doom-font (font-spec :family "JetBrains Mono" :size 26)
+        doom-symbol-font (font-spec :family "Segoe UI Emoji")
+
+        default-directory "~/Desktop/"
+        org-directory "~/Documents/Notes/")
+  ;; https://emacs-china.org/t/doom-emacs/23513/10
+  (defun my-cjk-font()
+    (dolist (charset '(kana han cjk-misc symbol bopomofo))
+      (set-fontset-font t charset (font-spec :family "Microsoft Yahei"))))
+  (add-hook 'after-setting-font-hook #'my-cjk-font))
+#+end_src
+
+*** Linux
+#+begin_src emacs-lisp
+(when (featurep :system 'linux)
+  (setq doom-font (font-spec :family "JetBrains Mono" :size 14)
+        doom-variable-pitch-font (font-spec :family "Fira Code")
+        doom-big-font-increment 2
+        doom-symbol-font (font-spec :family "Noto Color Emoji")
+
+        org-directory "~/Documents/Notes/")
+
+  (defun my-cjk-font()
+    (dolist (charset '(kana han cjk-misc symbol bopomofo))
+      (set-fontset-font t charset (font-spec :family "Noto Sans CJK SC"))))
+  (add-hook 'after-setting-font-hook #'my-cjk-font))
+#+end_src
+
+*** WSL
+
+** UI
+#+begin_src emacs-lisp
+;; (add-to-list 'default-frame-alist '(height . 40))
+;; (add-to-list 'default-frame-alist '(width . 80))
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+(add-to-list 'default-frame-alist '(alpha-background . 98))
+
+;; doom-tomorrow-night / doom-vibrant
+(setq doom-theme 'doom-tomorrow-night)
+
+;; treemacs
+(after! treemacs
+  (define-key! treemacs-mode-map [mouse-1] #'treemacs-single-click-expand-action))
+#+end_src
+
+** Editor
+#+begin_src emacs-lisp
+;; Repeating C-SPC after popping mark pops
+(setq set-mark-command-repeat-pop t)
+
+;; 识别中文标点符号
+(setq sentence-end "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*")
+#+end_src
+
+*** Wrap
+#+begin_src emacs-lisp
+(when (modulep! :editor word-wrap)
+  (+global-word-wrap-mode +1))
+;; or
+(set-default 'word-wrap nil)
+(set-default 'truncate-lines nil)
+#+end_src
+
+*** smart-region
+#+begin_src emacs-lisp
+;; set-mark multiple times to expands
+(use-package! smart-region
+  :hook (after-init . smart-region-on))
+#+end_src
+
+** Programming
+#+begin_src emacs-lisp
+(setq +default-want-RET-continue-comments nil ; 别在新行加注释
+      display-line-numbers-type 't ; t / nil / relative
+ )
+#+end_src
+
+*** flycheck
+#+begin_src emacs-lisp
+;; disable flycheck in some mode
+(setq flycheck-disabled-checkers '(sh-shellscript
+                                   emacs-lisp
+                                   emacs-lisp-checkdoc))
+#+end_src
+
+*** nix
+#+begin_src emacs-lisp
+(setq! lsp-nix-server-path "nixd")
+(use-package! nix-mode
+  :custom (nix-nixfmt-bin "nixfmt"))
+#+end_src
+
+** Completion
+#+begin_src emacs-lisp
+;; hippie expand is dabbrev expand on steroids
+;; doom 顺序似乎不对，这里覆盖自己的配置
+(setq hippie-expand-try-functions-list
+      '(try-expand-dabbrev                 ;搜索当前 buffer, expand word "dynamically"
+        try-expand-dabbrev-all-buffers     ;搜索所有 buffer
+        try-expand-dabbrev-from-kill       ;从 kill-ring 中搜索
+        try-complete-file-name-partially   ;文件名部分匹配
+        try-complete-file-name             ;文件名匹配
+        try-expand-all-abbrevs             ;匹配所有缩写词, according to all abbrev tables
+        try-expand-list                    ;补全一个列表
+        try-expand-line                    ;补全当前行
+        try-complete-lisp-symbol-partially ;部分补全 lisp symbol
+        try-complete-lisp-symbol))         ;补全 lisp symbol
+#+end_src
+
+** Backup
+#+begin_src emacs-lisp
+(setq delete-by-moving-to-trash t
+      save-interprogram-paste-before-kill t ;save clipboard
+      undo-in-region t
+      recentf-exclude '( "^/tmp/" "\\.?ido\\.last$" "\\.revive$" "autosave$" "treemacs-persist" )
+      )
+
+(after! vundo
+  (setq vundo-glyph-alist vundo-unicode-symbols)
+  (setq vundo-roll-back-on-quit nil))
+
+;; 窗口失去焦点时保存
+;; (add-function :after after-focus-change-function (lambda () (save-some-buffers t)))
+#+end_src
+
+*** super-save
+#+begin_src emacs-lisp
+(use-package! super-save
+  :config
+  (super-save-mode +1)
+  ;; Emacs空闲是否自动保存，这里不设置
+  (setq super-save-auto-save-when-idle nil)
+  ;; 切换窗口自动保存
+  (add-to-list 'super-save-triggers 'other-window)
+  ;; 查找文件时自动保存
+  (add-to-list 'super-save-hook-triggers 'find-file-hook)
+  ;; 远程文件编辑不自动保存
+  (setq super-save-remote-files nil)
+  ;; 特定后缀名的文件不自动保存
+  (setq super-save-exclude '(".gpg"))
+  ;; 自动保存时，保存所有缓冲区
+  (defun super-save/save-all-buffers ()
+    (save-excursion
+      (dolist (buf (buffer-list))
+        (set-buffer buf)
+        (when (and buffer-file-name
+                   (buffer-modified-p (current-buffer))
+                   (file-writable-p buffer-file-name)
+                   (if (file-remote-p buffer-file-name) super-save-remote-files t))
+          (save-buffer)))))
+  (advice-add 'super-save-command :override 'super-save/save-all-buffers)
+  )
+#+end_src
+
+** Files
+*** projectile
+#+begin_src emacs-lisp
+(after! projectile
+  ;; manual clear cache (M-x projectile-invalidate-cache) or
+  (setq projectile-enable-caching nil)
+  )
+#+end_src
+
+*** dired
+#+begin_src emacs-lisp
+;; recentf 不要保存 dired 记录
+(define-advice doom--recentf-add-dired-directory-h (:override ()))
+
+(after! dired
+  (setq dired-listing-switches "-aBhlv --group-directories-first"
+        dired-omit-files "\\`[.]?#\\|\\`[.][.]?")
+  (map! :map dired-mode-map
+        "f" #'ido-find-file
+        "<RET>" #'dired-find-alternate-file
+        "<SPC>" #'dired-find-alternate-file
+        "." #'dired-omit-mode
+        "/" #'funs/dired-filter-show-match
+        "b" #'(lambda ()
+                (interactive)
+                (find-alternate-file ".."))
+        ))
+;;;###autoload
+(defun funs/dired-filter-show-match ()
+  "Only show filter file"
+  (interactive)
+  (call-interactively #'dired-mark-files-regexp)
+  (command-execute "tk"))
+#+end_src
+
+** Shell
+#+begin_src emacs-lisp
+;; vterm or eshell
+(when (featurep :system 'windows)
+  (global-set-key (kbd "<f2>") '+eshell/toggle))
+
+(when (featurep :system 'linux)
+  (global-set-key (kbd "<f2>") '+vterm/toggle)
+  (after! vterm
+    (setq vterm-shell "zsh")
+    (define-key vterm-mode-map (kbd "<f2>")  '+vterm/toggle)))
+#+end_src
+
+** Mouse
+#+begin_src emacs-lisp
+(blink-cursor-mode -1)               ;禁用指针闪烁
+(setq mouse-yank-at-point t)         ;禁用鼠标点击粘贴
+(global-unset-key (kbd "<mouse-2>")) ;禁用鼠标中键
+(fset 'mouse-save-then-kill 'ignore) ;禁用鼠标右键双击剪切
+
+(pixel-scroll-precision-mode t)
+#+end_src
+
+** Keybindings
+#+begin_src emacs-lisp
+
+(ffap-bindings)
+(setq ffap-machine-p-known 'reject) ; Don't ping things that look like domain names.
+
+;; (global-set-key (kbd "C-z") nil)
+(global-set-key (kbd "C-z") 'undo)
+(global-set-key (kbd "C-S-z") 'undo-redo)
+#+end_src
+
+*** Global keymap
+#+begin_src emacs-lisp
+(map!
+ "C-\\" #'align-regexp
+ "M-s" #'avy-goto-word-1 ;默认 isearch 被覆盖
+ "<f1>" #'+treemacs/toggle
+ "C-<tab>" #'consult-buffer
+
+ "C-x C-d" #'dired-jump
+ "C-c s r" #'deadgrep
+ "C-c C-s" #'deadgrep
+ "C-s" #'consult-line
+ "C-x C-r" #'consult-recent-file
+ "C-x C-b" #'consult-buffer
+ "M-y" #'consult-yank-pop
+ "M-m" #'consult-mark
+ "C-x 4 r" #'consult-buffer-other-window
+ "C-x 4 x" #'ace-swap-window
+ "C-S-t" #'tab-new
+ [remap other-window] #'ace-window
+ [remap kill-buffer] #'kill-current-buffer
+
+ "C-." #'hippie-expand
+ "C-," #'+company/complete
+ "C-/" #'comment-line ;vscode
+ "C-S-i" #'lsp-format-buffer ;vscode
+
+ "C-k" #'crux-smart-kill-line
+ "C-x u" #'vundo
+ "C-x l" #'ialign
+ "C-x j" #'dired-jump-other-window
+
+ "C-}" #'mc/mark-next-like-this
+ "C-{" #'mc/mark-previous-like-this
+ "C-|" #'mc/mark-all-like-this-dwim
+ "s-<mouse-1>" #'mc/add-cursor-on-click
+
+ "M-z" #'avy-zap-to-char
+ [remap kill-ring-save] #'easy-kill
+ [remap mark-sexp] #'easy-mark-sexp
+ [remap mark-word] #'easy-mark-word
+ [remap query-replace] 'anzu-query-replace
+ [remap query-replace-regexp] 'anzu-query-replace-regexp
+
+ "s-w" #'+hydra/window-nav/body
+ "s-=" #'+hydra/text-zoom/body
+ "s-d" #'dired-jump
+
+ "s-g" #'magit-status
+ ;; :map magit-status-mode-map
+ ;; "p" 'magit-push
+
+ "C-x 2" #'(lambda()
+             "split windows and switch"
+             (interactive)
+             (split-window-below)
+             (select-window (next-window)))
+
+ "C-x 3" #'(lambda()
+             "split windows and switch"
+             (interactive)
+             (split-window-right)
+             (select-window (next-window)))
+ )
+#+end_src
+
+*** Emacs leader key
+#+begin_src emacs-lisp
+(unless (modulep! :editor evil +everywhere)
+  ;; (setq doom-leader-alt-key "C-c")
+  ;; (setq doom-leader-alt-key "<M-SPC>")
+  (map!
+   :leader
+   "y" #'fanyi-dwim2
+   "g" #'magit-status
+   "<left>" #'winner-undo
+   "<right>" #'winner-redo
+   "<SPC>" #'project-find-file
+   "C-<SPC>" #'project-find-file
+   "," #'consult-buffer
+   "." #'find-file
+   "/" #'consult-ripgrep
+   :prefix ("-" . "remove-lists")
+   "b" #'bookmark-delete
+   "r" #'recentf-edit-list
+   "p" #'project-forget-project
+   :prefix ("b" . "buffer")
+   "b" #'consult-buffer
+   "k" #'kill-current-buffer
+   "K" #'crux-kill-other-buffers
+   "s" #'save-some-buffers
+   "l" #'+ibuffer/open-for-current-workspace
+   :prefix ("f" . "file")
+   "<f2>" #'rename-visited-file
+   "s" #'save-some-buffers
+   :prefix ("z" . "zap")
+   "SPC" #'just-one-space
+   "z" #'avy-zap-to-char
+   :prefix ("m" . "multiple-cursors")
+   "l" #'goto-last-change
+   "'" #'er/mark-inside-quotes
+   "[" #'er/mark-inside-pairs
+   :prefix ("w" . "window")
+   "x" #'ace-swap-window
+   "v" #'rotate-layout
+   ))
+#+end_src
+*** Evil leader key
+#+begin_src emacs-lisp
+(when (modulep! :editor evil +everywhere)
+  (map!
+   :niv "C-=" #'expreg-expand
+   :niv "C-y" #'yank
+   :niv "C-k" #'crux-smart-kill-line
+   :niv "C-e" #'end-of-line
+   :leader
+   "y" #'fanyi-dwim2
+   "<left>" #'next-buffer
+   "<right>" #'previous-buffer
+   :prefix ("-" . "remove-lists")
+   "b" #'bookmark-delete
+   "r" #'recentf-edit-list
+   "p" #'projectile-remove-known-project
+   :prefix ("f" . "file")
+   "<f2>" #'crux-rename-file-and-buffer
+   :prefix ("w" . "window")
+   "0" #'delete-window
+   "1" #'delete-other-windows
+   "2" #'split-window-vertically
+   "3" #'split-window-horizontally
+   "," #'winner-undo
+   "." #'winner-redo
+   "x" #'ace-swap-window
+   "v" #'rotate-layout
+   :prefix ("z" . "zap")
+   "SPC" #'just-one-space
+   ))
+#+end_#+begin_src
+
+** Functions
+*** backward-delete-word
+~M-backspace~ 删除而非剪切
+
+#+begin_src emacs-lisp
+;;;###autoload
+(defun backward-delete-word (arg)
+  "Delete characters backward until encountering the beginning of a word.
+  With argument ARG, do this that many times."
+  (interactive "p")
+  (delete-region (point) (progn (backward-word arg) (point))))
+(global-set-key [remap backward-kill-word] #'backward-delete-word)
+#+end_src

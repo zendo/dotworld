@@ -9,6 +9,7 @@ in
     ".proxychains/proxychains.conf".source = ../dotfiles/proxychains.conf;
     ".memo".source = linkHome "Documents/memo";
     ".emacs.d/all-emacs.org".source = linkFlake "dotfiles/org/all-emacs.org";
+    ".doom.d/config.org".source = linkFlake "dotfiles/org/doom-emacs.org";
   };
 
   xdg.configFile = {
@@ -22,7 +23,6 @@ in
     "radioboat".source = ../dotfiles/radioboat;
     "starship.toml".source = ../dotfiles/starship.toml;
 
-    "doom".source = linkFlake "dotfiles/doom";
     "mpv".source = linkFlake "dotfiles/mpv";
     "mako".source = linkFlake "dotfiles/mako";
     "helix".source = linkFlake "dotfiles/helix";
