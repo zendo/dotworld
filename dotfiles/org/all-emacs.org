@@ -118,12 +118,11 @@
 
 (package-initialize)
 
-;; use-package
-(setq use-package-always-ensure t
-      ;; use-package-always-defer t
-      ;; use-package-verbose t
-      use-package-enable-imenu-support t)
-(require 'use-package)
+(use-package use-package
+  :custom
+  (use-package-always-ensure t)
+  (package-native-compile t)
+  (use-package-enable-imenu-support t))
 
 (use-package bind-key)
 
@@ -566,6 +565,7 @@ https://lucidmanager.org/productivity/emacs-windows/ Using Emacs on Windows 11: 
   :custom ((dired-recursive-copies 'always) ;递归操作目录
            (dired-recursive-deletes 'top) ;询问一次;
            (dired-auto-revert-buffer t)
+           (dired-omit-files (concat dired-omit-files "\\|^\\..+$")) ;hide .dot files when in dired-omit-mode
            (dired-listing-switches "-lha --group-directories-first"))
   :bind (("s-d" . dired-jump)
          ("C-x C-d" . dired-jump)
@@ -573,23 +573,12 @@ https://lucidmanager.org/productivity/emacs-windows/ Using Emacs on Windows 11: 
          ("f" . consult-find)
          ("RET" . dired-find-alternate-file)
          ("." . dired-do-print)
-         ("," . dired-hide-details-mode)
+         ("," . dired-omit-mode)
          ("/" . funs/dired-filter-show-match)
          ("b" . (lambda ()
                   (interactive)
                   (find-alternate-file ".."))))
   :config
-  ;;;###autoload
-  (define-advice dired-do-print (:override (&optional _))
-    "Show/hide dotfiles."
-    (interactive)
-    (if (or (not (boundp 'dired-dotfiles-show-p)) dired-dotfiles-show-p)
-        (progn
-          (setq-local dired-dotfiles-show-p nil)
-          (dired-mark-files-regexp "^\\.")
-          (dired-do-kill-lines))
-      (revert-buffer)
-      (setq-local dired-dotfiles-show-p t)))
   ;;;###autoload
   (defun funs/dired-filter-show-match ()
     "Only show filter file."
@@ -1022,8 +1011,8 @@ Consulting completing-read.
          ("C-s" . consult-line)
          ("M-." . consult-imenu)
          ("M-m" . consult-mark)
-         :map org-mode-map
-         ("C-c C-j" . consult-org-heading)
+         ;; :map org-mode-map
+         ;; ("C-c C-j" . consult-org-heading)
          :map prog-mode-map
          ("C-c C-j" . consult-outline)
          :map minibuffer-local-map
@@ -1662,8 +1651,8 @@ https://one.tonyaldon.com/
   :init
   ;; disable flycheck in some mode
   (setq flycheck-disabled-checkers '(
-                                     emacs-lisp
-                                     emacs-lisp-checkdoc
+                                     ;; emacs-lisp
+                                     ;; emacs-lisp-checkdoc
                                      ;; sh-shellscript
                                      )))
 #+end_src
@@ -2087,22 +2076,6 @@ Saves to a temp file and puts the filename in the kill ring."
 
 (provide 'init.el)
 ;;; init.el ends here
-#+end_src
-
-* Notes
-
-#+begin_src shell :tangle no
-emacs --batch -l org --eval '(setq vc-follow-symlinks nil)' --eval '(org-babel-tangle-file "~/.emacs.d/all-emacs.org")'
-
-# on Windows
-emacs --batch -l org --eval '(setq vc-follow-symlinks nil)' --eval '(org-babel-tangle-file \"~/.emacs.d/all-emacs.org\")'
-#+end_src
-
-#+begin_src org-mode :tangle no
-#+PROPERTY: header-args:emacs-lisp :results silent :tangle "~/.emacs.d/init.el"
-#+AUTO_TANGLE: t
-
-emacs-lisp :tangle "~/.emacs.d/early-init.el"
 #+end_src
 
 * Links

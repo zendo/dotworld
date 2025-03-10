@@ -1,6 +1,5 @@
-;;; Package --- Summary
+;;; Package --- Summary $DOOMDIR/init.el -*- lexical-binding: t; -*-
 ;;; Commentary:
-;;; init.el -*- lexical-binding: t; -*-
 ;;; Code:
 
 ;; Docs: https://docs.doomemacs.org/latest/

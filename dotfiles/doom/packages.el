@@ -1,7 +1,6 @@
-;;; Package --- Summary
+;;; Package --- Summary $DOOMDIR/packages.el -*- lexical-binding: t; -*-
 ;;; Commentary:
-;; -*- no-byte-compile: t; -*-
-;;; $DOOMDIR/packages.el
+
 ;;; Code:
 
 (package! crux)

@@ -1,6 +1,6 @@
-;;; Package --- Summary
+;;; Package --- Summary $DOOMDIR/config.el -*- lexical-binding: t; -*-
 ;;; Commentary:
-;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
+;;; $DOOMDIR/config.el
 ;;; Code:
 
 ;; Here are some additional functions/macros that could help you configure Doom:

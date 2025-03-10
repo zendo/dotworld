@@ -1,6 +1,5 @@
-;;; Package --- Summary
+;;; Package --- Summary $DOOMDIR/keybindings.el -*- lexical-binding: t; -*-
 ;;; Commentary:
-;;; $DOOMDIR/keybindings.el -*- lexical-binding: t; -*-
 ;;; Code:
 
 ;; Mouse
